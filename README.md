@@ -63,4 +63,4 @@ npm install ethers bootstrap
 ------------------------------------------------------------
 
 📎 Next Step:
-After setup, go to plan/week1.md to view your Week 1 goals and tasks.
+After setup, go to roadmap/week1.md to view your Week 1 goals and tasks.
