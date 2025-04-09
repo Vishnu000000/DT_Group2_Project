@@ -1,7 +1,7 @@
 
-📦 Distributed Trust – AI Model Training Data (Group 2)
+Distributed Trust – AI Model Training Data (Group 2)
 
-👥 Team Members & Roles
+Team Members & Roles
 
 Name                  | Roll No     | Role
 ----------------------|-------------|----------------------------------
@@ -35,16 +35,16 @@ npm install
 
 ------------------------------------------------------------
 
-🧩 Member-Specific Setup Instructions
+Member-Specific Setup Instructions
 
-💾 Dinesh Kumar S – Smart Contract Developer
+💾 Dinesh Naik Katravath – Smart Contract Developer
 ```
 npm install --save-dev hardhat
 npx hardhat compile
 ```
 - Work inside: contracts/, scripts/, test/
 
-☁️ Dinesh Naik Katravath – Backend & IPFS Developer
+☁️ Dinesh Kumar S – Backend & IPFS Developer
 ```
 cd backend
 npm init -y
