@@ -28,7 +28,7 @@ npm -v
 
 📁 3. Clone the GitHub Repository
 ```
-git clone https://github.com/<your-username-or-org>/DT_Group2_Project.git
+git clone https://github.com/Vishnu000000/DT_Group2_Project.git
 cd DT_Group2_Project
 npm install
 ```
