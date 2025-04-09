@@ -1,87 +1,99 @@
-# 📅 Week 1 Plan – Group 2: Distributed Trust (April 9–14)
 
-This document outlines the goals, individual responsibilities, and expected deliverables for Week 1 of the Distributed Trust project.
+📅 Week 1 Plan – Group 2: Distributed Trust (April 9–14)
 
----
+This document defines the Week 1 objectives and individual responsibilities for all team members.
 
-## 🧠 Team Roles
+------------------------------------------------------------
 
-| Member | Roll Number | Responsibility |
-|--------|-------------|----------------|
-| Vishnu Vardhan | CS24M022 | **Lead / Deployment / Integrator** |
-| Dinesh Kumar S | CS24M017 | **Smart Contract & Token Developer** |
-| Dinesh Naik Katravath | CS24M018 | **Backend & IPFS Developer** |
-| Lokesh Talamala | CS24M023 | **Frontend Developer** |
+👥 Team Roles
 
----
+Name                  | Roll No     | Role
+----------------------|-------------|----------------------------------
+Vishnu Vardhan        | CS24M022    | Project Lead / Deployment
+Dinesh Kumar S        | CS24M017    | Smart Contract & Token Developer
+Dinesh Naik Katravath | CS24M018    | Backend & IPFS Developer
+Lokesh Talamala       | CS24M023    | Frontend Developer
 
-## 🎯 Week 1 Objective
+------------------------------------------------------------
 
-> Build the foundation of the decentralized platform: setup contracts, IPFS, and frontend environment.
+🎯 Week 1 Objective
 
----
+Kickstart the project with smart contract setup, IPFS backend integration, and frontend environment.
 
-## 🧑‍🚀 Vishnu Vardhan (Project Lead)
+------------------------------------------------------------
 
-**Tasks:**
-- ✅ Create and structure GitHub repository
-- ✅ Initialize Hardhat project and install dependencies
-- ✅ Deploy `TraindataRegistry` contract locally
-- ✅ Push contract code and setup folders
-- ✅ Write team documentation (`README.md`, `week1.md`)
-- ✅ Create and assign GitHub issues for all members
-- ✅ Guide team members through setup and review commits
+🧑‍🚀 Vishnu Vardhan – Deployment
 
----
+Responsibilities:
+- Create GitHub repository & folder structure
+- Set up Hardhat project and deploy `TraindataRegistry.sol`
+- Write `README.md` and `week1.md`
+- Push deployed contract and project scaffolding
+- Guide team, review pull requests, manage integration
 
-## 💾 Dinesh Kumar S (Smart Contract Developer)
+------------------------------------------------------------
 
-**Tasks:**
-- [ ] Extend `TraindataRegistry.sol`:
-  - Include dataset metadata (CID, description, owner, license status)
-  - Add functions for uploading, licensing, and fetching datasets
-- [ ] Create a mock ERC-20 token for dataset licensing
-- [ ] Test contracts locally using Hardhat
-- [ ] Provide ABI and contract address for frontend/backend
-- [ ] Push changes to `contract-dev` branch
+💾 Dinesh Naik Katravath – Smart Contract Developer
 
----
+Responsibilities:
+- Extend `TraindataRegistry.sol`:
+  - Include fields: IPFS CID, metadata, owner, licensee
+  - Add `uploadDataset()`, `licenseDataset()`, `getDataset()` functions
+- Create mock ERC-20 token for licensing
+- Test on Hardhat local network
+- Push updates to `contract-dev` branch
 
-## ☁️ Dinesh Naik Katravath (Backend & IPFS Developer)
+Example command to compile contract:
+```
+npx hardhat compile
+```
 
-**Tasks:**
-- [ ] Setup basic Node.js + Express backend in `backend/` folder
-- [ ] Use `ipfs-http-client` to:
-  - Upload encrypted files to IPFS
-  - Retrieve CIDs
-- [ ] Build API endpoints:
-  - `POST /upload` → returns CID
-  - `GET /dataset/:id` → retrieves dataset info
-- [ ] Document backend API flow
-- [ ] Push code to `ipfs-backend` branch
+------------------------------------------------------------
 
----
+☁️ Dinesh Kumar S – Backend & IPFS Developer
 
-## 🎨 Lokesh Talamala (Frontend Developer)
+Responsibilities:
+- Set up Node.js Express server under `backend/`
+- Connect to IPFS using `ipfs-http-client`
+- API routes:
+  - POST /upload → uploads file, returns CID
+  - GET /dataset/:id → fetch metadata
+- Encrypt file before upload (basic AES)
+- Push code to `ipfs-backend` branch
 
-**Tasks:**
-- [ ] Setup React project inside `frontend/` folder
-- [ ] Install and configure Tailwind CSS or Bootstrap
-- [ ] Build initial components:
+Backend init commands:
+```
+cd backend
+npm init -y
+npm install express ipfs-http-client multer cors
+```
+
+------------------------------------------------------------
+
+🎨 Lokesh Talamala – Frontend Developer
+
+Responsibilities:
+- Set up React app in `frontend/`
+- Install & configure Tailwind or Bootstrap
+- Build UI:
   - Upload form (file + metadata)
-  - Dataset view section
-- [ ] Connect to MetaMask using Ethers.js
-- [ ] Interact with contract: `uploadDataset()`, `getDataset()`
-- [ ] Push to `frontend-dev` branch
+  - Dataset viewer (list & license status)
+- Connect MetaMask via Ethers.js
+- Interact with contract (`uploadDataset()`, `getDataset()`)
 
----
+Frontend setup commands:
+```
+npx create-react-app frontend
+cd frontend
+npm install ethers bootstrap
+```
 
-## 📌 Deliverables by End of Week 1
+------------------------------------------------------------
 
-- [ ] Fully working `TraindataRegistry` contract with local tests
-- [ ] IPFS integration tested and returning CIDs
-- [ ] Basic frontend skeleton with MetaMask connection
-- [ ] All members synced with repo and pushing to their branches
+📌 Week 1 Deliverables (By April 14)
 
----
-
+- Smart contract extended & tested
+- ERC-20 token written (mock)
+- IPFS upload API tested with encryption
+- Frontend skeleton with MetaMask integration
+- All team members’ code in their respective branches
