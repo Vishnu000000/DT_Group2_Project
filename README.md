@@ -21,34 +21,44 @@ Lokesh Talamala       | CS24M023    | Frontend Developer
 🧱 2. Install Node.js & npm
 - Download LTS version: https://nodejs.org/
 - Verify:
-  node -v
-  npm -v
+```
+node -v
+npm -v
+```
 
 📁 3. Clone the GitHub Repository
-  git clone https://github.com/<your-username-or-org>/DT_Group2_Project.git
-  cd DT_Group2_Project
-  npm install
+```
+git clone https://github.com/<your-username-or-org>/DT_Group2_Project.git
+cd DT_Group2_Project
+npm install
+```
 
 ------------------------------------------------------------
 
 🧩 Member-Specific Setup Instructions
 
 💾 Dinesh Kumar S – Smart Contract Developer
-  npm install --save-dev hardhat
-  npx hardhat compile
-  - Work inside: contracts/, scripts/, test/
+```
+npm install --save-dev hardhat
+npx hardhat compile
+```
+- Work inside: contracts/, scripts/, test/
 
 ☁️ Dinesh Naik Katravath – Backend & IPFS Developer
-  cd backend
-  npm init -y
-  npm install express ipfs-http-client multer cors
-  - Work inside: backend/
+```
+cd backend
+npm init -y
+npm install express ipfs-http-client multer cors
+```
+- Work inside: backend/
 
 🎨 Lokesh Talamala – Frontend Developer
-  npx create-react-app frontend
-  cd frontend
-  npm install ethers bootstrap
-  - Work inside: frontend/
+```
+npx create-react-app frontend
+cd frontend
+npm install ethers bootstrap
+```
+- Work inside: frontend/
 
 ------------------------------------------------------------
 
