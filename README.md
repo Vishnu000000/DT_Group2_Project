@@ -6,8 +6,8 @@ Team Members & Roles
 Name                  | Roll No     | Role
 ----------------------|-------------|----------------------------------
 Vishnu Vardhan        | CS24M022    | Project Lead / Deployment
-Dinesh Kumar S        | CS24M017    | Smart Contract & Token Developer
-Dinesh Naik Katravath | CS24M018    | Backend & IPFS Developer
+Dinesh Naik Katravath | CS24M017    | Smart Contract & Token Developer
+Dinesh Kumar S        | CS24M018    | Backend & IPFS Developer
 Lokesh Talamala       | CS24M023    | Frontend Developer
 
 ------------------------------------------------------------
