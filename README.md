@@ -1,47 +1,56 @@
-# Distributed Trust – AI Model Training Data (Group 2)
 
-## Project Overview
+📦 Distributed Trust – AI Model Training Data (Group 2)
 
-This decentralized system enables secure upload, ownership, and licensing of AI training datasets using blockchain and IPFS.
+👥 Team Members & Roles
 
-- ✅ Immutable dataset records (via smart contracts)
-- ✅ Decentralized file storage (via IPFS)
-- ✅ Automated licensing (via ERC tokens)
-- ✅ GDPR-compliant dataset handling
+Name                  | Roll No     | Role
+----------------------|-------------|----------------------------------
+Vishnu Vardhan        | CS24M022    | Project Lead / Deployment
+Dinesh Kumar S        | CS24M017    | Smart Contract & Token Developer
+Dinesh Naik Katravath | CS24M018    | Backend & IPFS Developer
+Lokesh Talamala       | CS24M023    | Frontend Developer
 
----
+------------------------------------------------------------
 
-## Week 1 Goal (April 9–14): Setup & Contract Development
+⚙️ Common Setup Instructions (All Members)
 
-| Member | Role |
-|--------|------|
-| CS24M022 – Kilaparthi Vishnu Vardhan | 🧠 **Deployment / Integration** |
-| CS24M017 – Dinesh Naik Katravath | 💾 **Smart Contract & Token Developer** |
-| CS24M018 – Dinesh Kumar S | ☁️ **Backend & IPFS Developer** |
-| CS24M023 – Lokesh Talamala | 🎨 **Frontend Developer** |
+🔧 1. Install Git
+- Download: https://git-scm.com/
+- Use 64-bit version with default settings
 
----
+🧱 2. Install Node.js & npm
+- Download LTS version: https://nodejs.org/
+- Verify:
+  node -v
+  npm -v
 
+📁 3. Clone the GitHub Repository
+  git clone https://github.com/<your-username-or-org>/DT_Group2_Project.git
+  cd DT_Group2_Project
+  npm install
 
----
+------------------------------------------------------------
 
-## Local Setup Instructions (Required for All Members)
+🧩 Member-Specific Setup Instructions
 
-### 1. Install Git
-Download: https://git-scm.com/  
-Use 64-bit, default settings
+💾 Dinesh Kumar S – Smart Contract Developer
+  npm install --save-dev hardhat
+  npx hardhat compile
+  - Work inside: contracts/, scripts/, test/
 
-### 2. 🧱 Install Node.js & npm
-Download LTS: https://nodejs.org/  
-Then verify:
-```bash
-node -v
-npm -v ```
+☁️ Dinesh Naik Katravath – Backend & IPFS Developer
+  cd backend
+  npm init -y
+  npm install express ipfs-http-client multer cors
+  - Work inside: backend/
 
-### 3. Clone the Github Repository
-git clone https://github.com/Vishnu000000/DT_Group2_Project.git
-cd DT_Group2_Project
-npm install
+🎨 Lokesh Talamala – Frontend Developer
+  npx create-react-app frontend
+  cd frontend
+  npm install ethers bootstrap
+  - Work inside: frontend/
 
-----> **After these steps completion go to plans/week1.md for furthur instructions specific to member roles**
+------------------------------------------------------------
 
+📎 Next Step:
+After setup, go to plan/week1.md to view your Week 1 goals and tasks.
