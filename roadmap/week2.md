@@ -19,6 +19,8 @@ Complete backend upload API, kick off smart contract coding, and scaffold the fr
 - ☑️ Review each PR and merge when green‑lit  
 - ☑️ Update `README.md` with any URL or branch changes  
 - ☑️ Keep the team on track with a brief daily standup note  
+- 🔐 Ensure `PINATA_KEY`, `PINATA_SECRET`, and RPC endpoints are set in `.env`  
+- 📊 Prepare a one‑pager status dashboard summarizing progress  
 
 ---
 
@@ -47,6 +49,7 @@ Complete backend upload API, kick off smart contract coding, and scaffold the fr
     // pin to IPFS, return { cid }
   });
   ```  
+- 🧪 Write a quick API test (Jest or Mocha) asserting CID response  
 - 📝 Document the endpoint in `docs/api.md`  
 - ✅ Push to `ipfs-backend` branch  
 
