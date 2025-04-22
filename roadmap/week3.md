@@ -1,4 +1,4 @@
-# 📅 Week 3 Plan – Group 2: Distributed Trust (April 23-25)
+# 📅 Week 3 Plan – Group 2: Distributed Trust (April 20-25)
 
 **Objective:**  
 Integrate backend, contract, and frontend; implement licensing; finalize tests and docs.
