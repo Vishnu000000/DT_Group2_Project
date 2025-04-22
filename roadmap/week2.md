@@ -70,7 +70,7 @@ Complete backend upload API, kick off smart contract coding, and scaffold the fr
 
 ---
 
-## 📌 Deliverables by April 20  
+## 📌 Deliverables by April 23 EOD 
 - ✅ Backend API: `/upload` working with IPFS  
 - ✅ Smart contract stub compiled & deploy script ready  
 - ✅ Frontend skeleton with basic pages and wallet connect  
