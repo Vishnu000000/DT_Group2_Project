@@ -8,8 +8,8 @@ Complete backend upload API, kick off smart contract coding, and scaffold the fr
 | Name                  | Roll No     | Role                             |
 |-----------------------|-------------|----------------------------------|
 | **Vishnu Vardhan**    | CS24M022    | Project Lead / Coordinator       |
-| Dinesh Kumar S        | CS24M017    | Smart Contract Developer         |
-| Dinesh Naik Katravath | CS24M018    | Backend & IPFS Developer         |
+| Dinesh Naik Katravath | CS24M018    | Smart Contract Developer         |
+| Dinesh Kumar S        | CS24M017    | Backend & IPFS Developer         |
 | Lokesh Talamala       | CS24M023    | Frontend Developer               |
 
 ---
@@ -22,7 +22,7 @@ Complete backend upload API, kick off smart contract coding, and scaffold the fr
 
 ---
 
-## 💾 Smart Contract Developer – Dinesh Kumar S  
+## 💾 Smart Contract Developer – Dinesh Naik Katravath 
 - 📝 Initialize Hardhat (if not done) and compile:  
   ```bash
   npm install --save-dev hardhat
@@ -39,7 +39,7 @@ Complete backend upload API, kick off smart contract coding, and scaffold the fr
 
 ---
 
-## ☁️ Backend & IPFS Developer – Dinesh Naik Katravath  
+## ☁️ Backend & IPFS Developer –  Dinesh Kumar S  
 - 🔒 Finalize `upload.js` Pinata flow and log CID  
 - 🔄 Add Express route in `backend/index.js`:  
   ```js
