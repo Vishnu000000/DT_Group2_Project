@@ -8,8 +8,8 @@ Integrate backend, contract, and frontend; implement licensing; finalize tests a
 | Name                  | Roll No     | Role                             |
 |-----------------------|-------------|----------------------------------|
 | **Vishnu Vardhan**    | CS24M022    | Project Lead / Coordinator       |
-| Dinesh Kumar S        | CS24M017    | Smart Contract Developer         |
-| Dinesh Naik Katravath | CS24M018    | Backend & IPFS Developer         |
+| Dinesh Naik Katravath | CS24M018    | Smart Contract Developer         |
+| Dinesh Kumar S        | CS24M017    | Backend & IPFS Developer         |
 | Lokesh Talamala       | CS24M023    | Frontend Developer               |
 
 ---
@@ -23,7 +23,7 @@ Integrate backend, contract, and frontend; implement licensing; finalize tests a
 
 ---
 
-## 💾 Smart Contract Developer – Dinesh Kumar S  
+## 💾 Smart Contract Developer – Dinesh Naik Katravath  
 - 🔥 Extend contract with `licenseDataset(datasetId)` and event  
 - 🧪 Write tests for licensing in `test/`  
 - 🚀 Deploy to testnet:  
@@ -34,7 +34,7 @@ Integrate backend, contract, and frontend; implement licensing; finalize tests a
 
 ---
 
-## ☁️ Backend & IPFS Developer – Dinesh Naik Katravath  
+## ☁️ Backend & IPFS Developer –  Dinesh Kumar S
 - 🛠 Integrate `/upload` endpoint with contract call:  
   ```js
   const registry = new ethers.Contract(addr, abi, signer);
@@ -59,7 +59,7 @@ Integrate backend, contract, and frontend; implement licensing; finalize tests a
 
 ---
 
-## 📌 Deliverables by April 26  
+## 📌 Deliverables by April 25  
 - ✅ End‑to‑end flow: Upload → IPFS → Contract → UI  
 - ✅ Licensing functionality live on testnet  
 - ✅ UI, backend, and contract tested & documented  
