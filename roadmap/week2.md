@@ -7,7 +7,7 @@ Complete backend upload API, kick off smart contract coding, and scaffold the fr
 
 | Name                  | Roll No     | Role                             |
 |-----------------------|-------------|----------------------------------|
-| **Vishnu Vardhan**    | CS24M022    | Project Lead / Coordinator       |
+| Vishnu Vardhan        | CS24M022    | Project Lead / Coordinator       |
 | Dinesh Naik Katravath | CS24M018    | Smart Contract Developer         |
 | Dinesh Kumar S        | CS24M017    | Backend & IPFS Developer         |
 | Lokesh Talamala       | CS24M023    | Frontend Developer               |
