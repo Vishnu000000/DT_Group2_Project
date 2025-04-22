@@ -16,8 +16,9 @@ Integrate backend, contract, and frontend; implement licensing; finalize tests a
 
 ## 🧑‍🚀 Project Lead – Vishnu Vardhan  
 - ☑️ Review and merge final integration PRs  
+- 🗂️ Tag and package a v1.0 release candidate in GitHub  
 - ☑️ Deploy contract to testnet and share address/ABI  
-- ☑️ Update `README.md` with testnet info  
+- 📋 Perform a manual smoke test of end‑to‑end flow  
 - ☑️ Collect final feedback and draft demo slides  
 
 ---
@@ -40,14 +41,15 @@ Integrate backend, contract, and frontend; implement licensing; finalize tests a
   await registry.uploadDataset(req.body.name, req.body.cid);
   ```  
 - ➕ Add `POST /license` endpoint to call `licenseDataset()`  
-- 🗑 Implement soft‑delete for GDPR (optional)  
+- 🛡️ Add basic error handling (4xx/5xx) and input validation in routes  
+- 🗑️ Implement soft‑delete for GDPR (optional)  
 - ✅ Push final backend changes  
 
 ---
 
 ## 🎨 Frontend Developer – Lokesh Talamala  
 - 🔗 Wire Upload page to backend `/upload` and then to smart contract  
-- 🛒 Add “Purchase License” button for each dataset:  
+- 🛒 Add “Purchase License” button per dataset:  
   ```bash
   await registry.licenseDataset(datasetId);
   ```  
