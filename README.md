@@ -1,4 +1,3 @@
-
 Distributed Trust – AI Model Training Data (Group 2)
 
 Team Members & Roles
@@ -30,7 +29,6 @@ npm -v
 ```
 git clone https://github.com/Vishnu000000/DT_Group2_Project.git
 cd DT_Group2_Project
-npm install
 ```
 
 ------------------------------------------------------------
