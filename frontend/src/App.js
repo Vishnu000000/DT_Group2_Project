@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import DatasetMarketplace from './pages/DatasetMarketplace';
 import UploadDataset from './pages/UploadDataset';
+import ViewDatasets from './pages/ViewDatasets';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/marketplace" element={<DatasetMarketplace />} />
               <Route path="/upload" element={<UploadDataset />} />
+              <Route path="/datasets" element={<ViewDatasets />} />
             </Routes>
           </main>
         </div>

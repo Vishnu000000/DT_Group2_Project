@@ -1,9 +1,14 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useHedera } from '../context/HederaContext';
 
 function Navbar() {
-  const { account, isConnected, isWalletInstalled, connect, disconnect } = useHedera();
+  const { account, isConnected, isWalletInstalled, connect, disconnect, error } = useHedera();
+  const location = useLocation();
+
+  const isActive = (path) => {
+    return location.pathname === path;
+  };
 
   return (
     <nav className="bg-white shadow-lg">
@@ -18,29 +23,56 @@ function Navbar() {
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               <Link
                 to="/"
-                className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                className={`${
+                  isActive('/')
+                    ? 'border-primary-500 text-gray-900'
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
               >
                 Home
               </Link>
               <Link
-                to="/marketplace"
-                className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                to="/datasets"
+                className={`${
+                  isActive('/datasets')
+                    ? 'border-primary-500 text-gray-900'
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
               >
-                Marketplace
+                Datasets
               </Link>
               <Link
                 to="/upload"
-                className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                className={`${
+                  isActive('/upload')
+                    ? 'border-primary-500 text-gray-900'
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
               >
                 Upload Dataset
+              </Link>
+              <Link
+                to="/marketplace"
+                className={`${
+                  isActive('/marketplace')
+                    ? 'border-primary-500 text-gray-900'
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+              >
+                Marketplace
               </Link>
             </div>
           </div>
           <div className="flex items-center">
+            {error && (
+              <div className="mr-4 text-red-600 text-sm">
+                {error}
+              </div>
+            )}
             {isConnected ? (
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-gray-500">
-                  {account?.toString().slice(0, 6)}...{account?.toString().slice(-4)}
+                  {account?.slice(0, 6)}...{account?.slice(-4)}
                 </span>
                 <button
                   onClick={disconnect}
@@ -59,7 +91,7 @@ function Navbar() {
                 } text-white px-4 py-2 rounded-md text-sm font-medium`}
                 disabled={!isWalletInstalled}
               >
-                {isWalletInstalled ? 'Connect HashPack' : 'Install HashPack'}
+                {isWalletInstalled ? 'Connect MetaMask' : 'Install MetaMask'}
               </button>
             )}
           </div>
