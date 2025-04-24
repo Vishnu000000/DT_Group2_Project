@@ -72,24 +72,28 @@ function UploadDataset() {
     setUploadProgress(0);
 
     try {
-      // Here you would typically upload the files to IPFS or your preferred storage
-      const uploadInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 100) {
-            clearInterval(uploadInterval);
-            return 100;
-          }
-          return prev + 10;
-        });
-      }, 500);
+      // Create FormData object
+      const formDataObj = new FormData();
+      formData.files.forEach(file => {
+        formDataObj.append('file', file);
+      });
 
-      // Simulate file upload and get CID
-      const mockCid = 'Qm' + Math.random().toString(36).substring(2, 15);
-      setCid(mockCid);
+      // Upload files to backend
+      const uploadResponse = await fetch('http://localhost:3000/api/upload', {
+        method: 'POST',
+        body: formDataObj
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload files');
+      }
+
+      const uploadResult = await uploadResponse.json();
+      setCid(uploadResult.ipfsHash);
 
       // Register the dataset with the contract
       await registerDataset(
-        mockCid,
+        uploadResult.ipfsHash,
         formData.price,
         formData.isPublic
       );
