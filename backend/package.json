@@ -1,32 +1,40 @@
 {
-  "name": "dataset-manager-backend",
+  "name": "ai-data-token-backend",
   "version": "1.0.0",
-  "description": "Backend service for dataset management with blockchain and IPFS",
-  "main": "server.js",
+  "description": "Backend for AI Data Token Platform",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
-    "compile": "node scripts/compile.js",
-    "test": "node scripts/testUpload.js"
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "setup-hedera": "node scripts/setup-hedera.js",
+    "deploy-contracts": "node scripts/deploy-contracts.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "@openzeppelin/contracts": "^4.9.0",
-    "@pinata/sdk": "^2.1.0",
+    "@hashgraph/sdk": "^2.24.0",
+    "@openzeppelin/contracts": "^4.9.3",
+    "axios": "^1.8.4",
     "cors": "^2.8.5",
-    "dotenv": "^16.0.3",
-    "ethers": "^5.7.2",
+    "dotenv": "^16.3.1",
+    "ethers": "^6.13.5",
     "express": "^4.18.2",
-    "ipfs-http-client": "^56.0.3",
+    "express-validator": "^7.0.1",
+    "form-data": "^4.0.2",
+    "helmet": "^7.0.0",
     "multer": "^1.4.5-lts.1",
-    "solc": "^0.8.19",
-    "web3.storage": "^4.5.5"
+    "winston": "^3.10.0"
   },
   "devDependencies": {
-    "axios": "^1.6.7",
-    "form-data": "^4.0.0",
-    "nodemon": "^2.0.22"
+    "jest": "^29.6.4",
+    "nodemon": "^3.0.1",
+    "supertest": "^6.3.3"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": [
+      "./src/tests/setup.js"
+    ]
   }
 }
