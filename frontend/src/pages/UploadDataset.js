@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useHedera } from '../context/HederaContext';
-import DatasetRegistry from '../contracts/DatasetRegistry.json';
 
 function UploadDataset() {
-  const { account, client } = useHedera();
+  const { account, contract, registerDataset } = useHedera();
   const [formData, setFormData] = useState({
     files: [],
     price: '',
@@ -53,7 +52,7 @@ function UploadDataset() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!client || !account) {
+    if (!contract || !account) {
       setError('Please connect your wallet first');
       return;
     }
@@ -88,8 +87,8 @@ function UploadDataset() {
       const mockCid = 'Qm' + Math.random().toString(36).substring(2, 15);
       setCid(mockCid);
 
-      // Register the dataset with the CID
-      await client.registerDataset(
+      // Register the dataset with the contract
+      await registerDataset(
         mockCid,
         formData.price,
         formData.isPublic,
