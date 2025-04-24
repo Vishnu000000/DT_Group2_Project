@@ -91,9 +91,7 @@ function UploadDataset() {
       await registerDataset(
         mockCid,
         formData.price,
-        formData.isPublic,
-        formData.name,
-        formData.description
+        formData.isPublic
       );
 
       // Reset form and show success message

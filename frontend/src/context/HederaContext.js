@@ -170,7 +170,7 @@ export function HederaProvider({ children }) {
   };
 
   // Contract interaction methods
-  const registerDataset = async (cid, price, isPublic, name, description) => {
+  const registerDataset = async (cid, price, isPublic) => {
     try {
       if (!contract) {
         throw new Error('Contract not initialized');
@@ -180,7 +180,7 @@ export function HederaProvider({ children }) {
       const priceInTinybars = ethers.utils.parseUnits(price.toString(), 8);
 
       // Call the contract's registerDataset function
-      const tx = await contract.registerDataset(cid, priceInTinybars, isPublic, name, description);
+      const tx = await contract.registerDataset(cid, priceInTinybars, isPublic);
       
       // Wait for the transaction to be mined
       await tx.wait();
