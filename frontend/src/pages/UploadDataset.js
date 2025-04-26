@@ -79,7 +79,7 @@ function UploadDataset() {
       });
 
       // Upload files to backend
-      const uploadResponse = await fetch('http://localhost:3000/api/upload', {
+      const uploadResponse = await fetch('http://localhost:5000/api/upload', {
         method: 'POST',
         body: formDataObj
       });

@@ -5,272 +5,266 @@ import DatasetRegistry from '../contracts/DatasetRegistry.json';
 
 const HederaContext = createContext();
 
-// Hedera Network Configuration
 const HEDERA_NETWORK = {
   testnet: {
     chainId: '0x128',
     chainName: 'Hedera Testnet',
-    nativeCurrency: {
-      name: 'HBAR',
-      symbol: 'HBAR',
-      decimals: 18
-    },
+    nativeCurrency: { name: 'HBAR', symbol: 'HBAR', decimals: 18 },
     rpcUrls: ['https://testnet.hashio.io/api'],
-    blockExplorerUrls: ['https://hashscan.io/testnet']
+    blockExplorerUrls: ['https://hashscan.io/testnet'],
   },
   mainnet: {
     chainId: '0x127',
     chainName: 'Hedera Mainnet',
-    nativeCurrency: {
-      name: 'HBAR',
-      symbol: 'HBAR',
-      decimals: 18
-    },
+    nativeCurrency: { name: 'HBAR', symbol: 'HBAR', decimals: 18 },
     rpcUrls: ['https://mainnet.hashio.io/api'],
-    blockExplorerUrls: ['https://hashscan.io/mainnet']
-  }
+    blockExplorerUrls: ['https://hashscan.io/mainnet'],
+  },
 };
 
-// Contract address - replace with your deployed contract address
-const CONTRACT_ADDRESS = process.env.REACT_APP_CONTRACT_ADDRESS || '0xYourContractAddress';
-
 export function HederaProvider({ children }) {
-  const [account, setAccount] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [isWalletInstalled, setIsWalletInstalled] = useState(false);
-  const [client, setClient] = useState(null);
-  const [error, setError] = useState(null);
-  const [network, setNetwork] = useState('testnet');
+  // ─── Hooks ────────────────────────────────────────────────────────────────
+  const [account, setAccount]   = useState(null);
+  const [network, setNetwork]   = useState('testnet');
+  const [client, setClient]     = useState(null);
   const [contract, setContract] = useState(null);
+  const [error, setError]       = useState(null);
 
+  // ─── Env‐vars ― no hooks here ─────────────────────────────────────────────
+  const acctEnv   = process.env.REACT_APP_HEDERA_ACCOUNT_ID;
+  let   keyEnv    = process.env.REACT_APP_HEDERA_PRIVATE_KEY || '';
+  const CONTRACT_ADDRESS = process.env.REACT_APP_CONTRACT_ADDRESS;
+
+  if (keyEnv.startsWith('0x')) keyEnv = keyEnv.slice(2);
+
+  let operatorId, operatorKey, configError;
+  try {
+    if (!acctEnv || !keyEnv || !CONTRACT_ADDRESS) {
+      throw new Error(
+        'Please set REACT_APP_HEDERA_ACCOUNT_ID, REACT_APP_HEDERA_PRIVATE_KEY & REACT_APP_CONTRACT_ADDRESS in .env'
+      );
+    }
+    operatorId  = AccountId.fromString(acctEnv);
+    operatorKey = PrivateKey.fromString(keyEnv);
+  } catch (e) {
+    configError = e.message;
+  }
+
+  // ─── Effect: MetaMask + SDK init ──────────────────────────────────────────
   useEffect(() => {
-    // Check if MetaMask is installed
-    if (window.ethereum) {
-      setIsWalletInstalled(true);
-      
-      // Check if already connected
-      window.ethereum.request({ method: 'eth_accounts' })
-        .then(accounts => {
-          if (accounts.length > 0) {
-            connect();
-          }
-        })
-        .catch(console.error);
-
-      // Listen for account changes
-      window.ethereum.on('accountsChanged', (accounts) => {
-        if (accounts.length === 0) {
-          disconnect();
-        } else {
-          connect();
-        }
-      });
-
-      // Listen for chain changes
-      window.ethereum.on('chainChanged', (chainId) => {
-        if (chainId === HEDERA_NETWORK.testnet.chainId) {
-          setNetwork('testnet');
-        } else if (chainId === HEDERA_NETWORK.mainnet.chainId) {
-          setNetwork('mainnet');
-        } else {
-          setError('Please switch to Hedera network');
-        }
-      });
+    if (configError) {
+      setError(configError);
+      return;
+    }
+    if (!window.ethereum) {
+      setError('MetaMask not found');
+      return;
     }
 
-    return () => {
-      if (window.ethereum) {
-        window.ethereum.removeAllListeners('accountsChanged');
-        window.ethereum.removeAllListeners('chainChanged');
+    const initClientAndContract = (net) => {
+      try {
+        const hederaClient =
+          net === 'mainnet' ? Client.forMainnet() : Client.forTestnet();
+        hederaClient.setOperator(operatorId, operatorKey);
+        setClient(hederaClient);
+
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer   = provider.getSigner();
+        setContract(new ethers.Contract(
+          CONTRACT_ADDRESS,
+          DatasetRegistry.abi,
+          signer
+        ));
+      } catch (err) {
+        console.error('initClientAndContract error:', err);
+        setError(err.message || 'Failed to initialize client & contract');
       }
     };
-  }, []);
 
-  const addHederaNetwork = async () => {
-    try {
-      await window.ethereum.request({
-        method: 'wallet_addEthereumChain',
-        params: [HEDERA_NETWORK[network]]
-      });
-      return true;
-    } catch (error) {
-      console.error('Error adding Hedera network:', error);
-      setError('Failed to add Hedera network to MetaMask');
-      return false;
-    }
-  };
+    // 1) Sync chain & init
+    window.ethereum.request({ method: 'eth_chainId' })
+      .then(chainId => {
+        if (chainId === HEDERA_NETWORK.mainnet.chainId) {
+          setNetwork('mainnet');
+          initClientAndContract('mainnet');
+        } else if (chainId === HEDERA_NETWORK.testnet.chainId) {
+          setNetwork('testnet');
+          initClientAndContract('testnet');
+        } else {
+          setError('Please switch MetaMask to a Hedera network');
+        }
+      })
+      .catch(console.error);
+
+    // 2) Auto‐connect if authorized
+    window.ethereum.request({ method: 'eth_accounts' })
+      .then(accts => { if (accts.length) setAccount(accts[0]); })
+      .catch(console.error);
+
+    // 3) Listeners
+    const onAccounts = accts => accts.length ? setAccount(accts[0]) : setAccount(null);
+    const onChain    = chainId => {
+      if (chainId === HEDERA_NETWORK.mainnet.chainId) {
+        setNetwork('mainnet'); initClientAndContract('mainnet');
+      } else if (chainId === HEDERA_NETWORK.testnet.chainId) {
+        setNetwork('testnet'); initClientAndContract('testnet');
+      } else {
+        setError('Switch MetaMask to a Hedera network');
+      }
+    };
+    window.ethereum.on('accountsChanged', onAccounts);
+    window.ethereum.on('chainChanged',    onChain);
+
+    return () => {
+      window.ethereum.removeListener('accountsChanged', onAccounts);
+      window.ethereum.removeListener('chainChanged',    onChain);
+    };
+  }, [configError]);
+
+  // ─── Helpers ──────────────────────────────────────────────────────────────
 
   const switchToHederaNetwork = async () => {
     try {
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: HEDERA_NETWORK[network].chainId }]
+        params: [{ chainId: HEDERA_NETWORK[network].chainId }],
       });
       return true;
-    } catch (error) {
-      if (error.code === 4902) {
-        // Network not added to MetaMask
-        return await addHederaNetwork();
+    } catch (err) {
+      if (err.code === 4902) {
+        await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [HEDERA_NETWORK[network]],
+        });
+        return true;
       }
-      console.error('Error switching to Hedera network:', error);
-      setError('Failed to switch to Hedera network');
+      setError('Could not switch to Hedera network');
       return false;
     }
   };
 
   const connect = async () => {
     try {
-      if (!window.ethereum) {
-        throw new Error('MetaMask is not installed');
-      }
-
-      // Request account access
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      const account = accounts[0];
-      
-      // Switch to Hedera network
-      const switched = await switchToHederaNetwork();
-      if (!switched) {
-        return;
-      }
-
-      setAccount(account);
-      setIsConnected(true);
-
-      // Initialize Hedera client
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      
-      // Initialize Hedera client
-      const hederaClient = network === 'testnet' ? Client.forTestnet() : Client.forMainnet();
-      setClient(hederaClient);
-
-      // Initialize contract
-      const contractInstance = new ethers.Contract(
-        CONTRACT_ADDRESS,
-        DatasetRegistry.abi,
-        signer
-      );
-      setContract(contractInstance);
-      setError(null);
-
-    } catch (error) {
-      console.error('Error connecting to MetaMask:', error);
-      setError(error.message);
-      setIsConnected(false);
+      const [acct] = await window.ethereum.request({
+        method: 'eth_requestAccounts',
+      });
+      setAccount(acct);
+      if (!(await switchToHederaNetwork())) return;
+      // contract will be re-init by the chainChanged listener
+    } catch (err) {
+      console.error('connect error:', err);
+      setError('Failed to connect');
     }
   };
 
   const disconnect = () => {
     setAccount(null);
-    setIsConnected(false);
     setClient(null);
     setContract(null);
     setError(null);
   };
 
-  // Contract interaction methods
+  // ─── Contract Interactions ─────────────────────────────────────────────────
+
   const registerDataset = async (cid, price, isPublic) => {
+    if (!contract) throw new Error('Contract not initialized');
+  
+    // Convert the price to the smallest unit (assuming the price is in HBAR, but adjust if needed)
+    const priceTiny = ethers.utils.parseUnits(price.toString(), 8); // 8 decimals for HBAR
+  
     try {
-      if (!contract) {
-        throw new Error('Contract not initialized');
-      }
-
-      // Convert price from HBAR to tinybars (1 HBAR = 100,000,000 tinybars)
-      const priceInTinybars = ethers.utils.parseUnits(price.toString(), 8);
-
       // Call the contract's registerDataset function
-      const tx = await contract.registerDataset(cid, priceInTinybars, isPublic);
-      
-      // Wait for the transaction to be mined
-      await tx.wait();
-
-      return tx;
-    } catch (error) {
-      console.error('Error registering dataset:', error);
-      throw error;
+      const tx = await contract.registerDataset(cid, priceTiny, isPublic);
+      await tx.wait(); // Wait for the transaction to be mined
+      console.log('Dataset registered successfully!');
+    } catch (err) {
+      console.error('Error registering dataset:', err);
+      throw new Error('Failed to register dataset');
     }
   };
 
-  const getAvailableDatasets = async () => {
+  
+  // const getDatasetCount = async () => {
+  //   if (!contract) throw new Error('Contract not initialized');
+  //   const count = await contract.getDatasetCount();
+  //   await count.wait();
+  //   return count.toNumber() || parseInt(count);
+  // };
+
+  const getDatasetCid = async (index) => {
+    if (!contract) {
+      throw new Error('Contract not initialized');
+    }
     try {
-      if (!contract) {
-        throw new Error('Contract not initialized');
-      }
-
-      // Get all dataset CIDs
-      const cids = await contract.getDatasetCids();
-      
-      // Get details for each dataset
-      const datasets = await Promise.all(
-        cids.map(async (cid) => {
-          const dataset = await contract.datasets(cid);
-          return {
-            id: cid,
-            owner: dataset.owner,
-            price: ethers.utils.formatUnits(dataset.price, 8), // Convert tinybars to HBAR
-            isPublic: dataset.isPublic,
-            isRemoved: dataset.isRemoved,
-            uploadTimestamp: dataset.uploadTimestamp.toNumber(),
-            name: dataset.name,
-            description: dataset.description
-          };
-        })
-      );
-
-      // Filter out removed datasets
-      return datasets.filter(dataset => !dataset.isRemoved);
-    } catch (error) {
-      console.error('Error fetching datasets:', error);
-      throw error;
+      const cid = await contract.getDatasetCid(index);
+      await cid.wait();
+      console.log(`Dataset CID: ${cid}`);
+      return cid;
+    } catch (err) {
+      console.error('Error fetching dataset CID:', err);
+      throw err;
     }
   };
 
-  const downloadDataset = async (cid) => {
-    try {
-      if (!contract) {
-        throw new Error('Contract not initialized');
-      }
+  // const getDatasetInfo = async (cid) => {
+  //   if (!contract) throw new Error('Contract not initialized');
+  
+  //   try {
+  //     const info = await contract.getDatasetInfo(cid);
+  //     await info.wait();
+  //     return {
+  //       cid,
+  //       owner: info.owner,
+  //       priceHBAR: ethers.utils.formatUnits(info.price, 8),
+  //       isPublic: info.isPublic,
+  //       uploadTimestamp: Number(info.uploadTimestamp),
+  //       isRemoved: info.isRemoved,
+  //     };
+  //   } catch (err) {
+  //     console.error('Failed to fetch dataset info:', err);
+  //     throw err;
+  //   }
+  // };
 
-      // Call the contract's downloadDataset function
-      const tx = await contract.downloadDataset(cid);
-      
-      // Wait for the transaction to be mined
-      await tx.wait();
-
-      return tx;
-    } catch (error) {
-      console.error('Error downloading dataset:', error);
-      throw error;
-    }
+  
+  const downloadDataset = async (cid, priceHBAR) => {
+    if (!contract) throw new Error('Contract not initialized');
+    const priceTiny = ethers.utils.parseUnits(priceHBAR.toString(), 8);
+    const tx = await contract.downloadDataset(cid, { value: priceTiny });
+    return tx.wait();
   };
 
-  const value = {
-    account,
-    isConnected,
-    isWalletInstalled,
-    client,
-    contract,
-    error,
-    network,
-    connect,
-    disconnect,
-    registerDataset,
-    getAvailableDatasets,
-    downloadDataset
-  };
+  // ─── Render & provide context ──────────────────────────────────────────────
+  if (error) {
+    return (
+      <div style={{ padding: 20, color: 'red' }}>
+        <h2>Error</h2>
+        <p>{error}</p>
+      </div>
+    );
+  }
 
   return (
-    <HederaContext.Provider value={value}>
+    <HederaContext.Provider value={{
+      account,
+      network,
+      client,
+      contract,
+      connect,
+      disconnect,
+      downloadDataset,
+      registerDataset,
+      // getDatasetCount,
+      getDatasetCid,
+      // getDatasetInfo,
+    }}>
       {children}
     </HederaContext.Provider>
   );
 }
 
 export function useHedera() {
-  const context = useContext(HederaContext);
-  if (context === undefined) {
-    throw new Error('useHedera must be used within a HederaProvider');
-  }
-  return context;
-} 
+  const ctx = useContext(HederaContext);
+  if (!ctx) throw new Error('useHedera must be used within a HederaProvider');
+  return ctx;
+}

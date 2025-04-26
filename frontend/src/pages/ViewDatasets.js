@@ -1,26 +1,61 @@
 import React, { useState, useEffect } from 'react';
 import { useHedera } from '../context/HederaContext';
+import { ethers } from 'ethers'; // Make sure to import ethers if needed
 
 function ViewDatasets() {
-  const { account, client } = useHedera();
+  const { account, contract } = useHedera();
   const [datasets, setDatasets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all'); // 'all', 'public', 'private'
 
+  // Function to fetch datasets using the contract's methods
+  const getAvailableDatasets = async () => {
+    if (!contract) throw new Error('Contract not initialized');
+  
+    try {
+      // const count = await contract.getDatasetCount();
+      const num = 1;
+
+      const datasets = [];
+      // const indexAsUint256 = ethers.BigNumber.from(0);
+      const cid = await contract.getDatasetCid(1);
+      for (let i = 0; i < num; i++) {
+        // const cid = await contract.getDatasetCid(i); // Get CID by index
+        // const data = await contract.getDatasetInfo(cid); // Lookup dataset details by CID
+  
+        // if (data.isRemoved) continue;
+  
+        // datasets.push({
+        //   id: cid,
+        //   owner: data.owner,
+        //   price: ethers.utils.formatUnits(data.price, 8),
+        //   isPublic: data.isPublic,
+        //   uploaded: new Date(data.uploadTimestamp.toNumber() * 1000),
+        // });
+      }
+  
+      return datasets;
+    } catch (err) {
+      console.error('Error in getAvailableDatasets:', err);
+      throw new Error('Failed to retrieve datasets');
+    }
+  };
+
+  // Fetch datasets when account or contract changes
   useEffect(() => {
     fetchDatasets();
-  }, [account, client]);
+  }, [account, contract]);
 
   const fetchDatasets = async () => {
-    if (!client || !account) return;
+    if (!contract || !account) return;
 
     setLoading(true);
     setError('');
 
     try {
-      const fetchedDatasets = await client.getAvailableDatasets();
+      const fetchedDatasets = await getAvailableDatasets(); // Call the custom function
       setDatasets(fetchedDatasets);
     } catch (error) {
       console.error('Error fetching datasets:', error);
@@ -39,20 +74,31 @@ function ViewDatasets() {
   };
 
   const handleDownload = async (dataset) => {
-    if (!client || !account) {
+    if (!contract || !account) {
       setError('Please connect your wallet first');
       return;
     }
 
     try {
       setLoading(true);
-      // Here you would implement the actual download logic
-      // This would involve checking permissions, paying HBAR if required, etc.
-      await client.downloadDataset(dataset.id);
-      alert('Dataset downloaded successfully!');
+      // Check if user has license
+      const hasLicense = await contract.hasLicense(dataset.id, account);
+      
+      if (!hasLicense) {
+        // If no license, check if dataset is public
+        if (!dataset.isPublic) {
+          setError('You need a license to download this dataset');
+          return;
+        }
+      }
+
+      // Implement download logic here
+      // This would involve getting the dataset content from IPFS or your storage solution
+      console.log('Downloading dataset:', dataset.id);
+      
     } catch (error) {
       console.error('Error downloading dataset:', error);
-      setError(error.message);
+      setError('Failed to download dataset');
     } finally {
       setLoading(false);
     }
@@ -146,4 +192,4 @@ function ViewDatasets() {
   );
 }
 
-export default ViewDatasets; 
+export default ViewDatasets;
