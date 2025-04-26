@@ -51,71 +51,77 @@ function UploadDataset() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!contract || !account) {
-      setError('Please connect your wallet first');
-      return;
+  e.preventDefault();
+  if (!contract || !account) {
+    setError('Please connect your wallet first');
+    return;
+  }
+
+  if (formData.files.length === 0) {
+    setError('Please select at least one file or folder to upload');
+    return;
+  }
+
+  if (!formData.name) {
+    setError('Please enter a dataset name');
+    return;
+  }
+
+  setLoading(true);
+  setError('');
+  setUploadProgress(0);
+
+  try {
+    // Create FormData object
+    const formDataObj = new FormData();
+    formData.files.forEach(file => {
+      formDataObj.append('file', file);
+    });
+    formDataObj.append('name', formData.name);
+    formDataObj.append('description', formData.description);
+
+    // Upload files + metadata to backend
+    const uploadResponse = await fetch('http://localhost:5000/api/upload', {
+      method: 'POST',
+      body: formDataObj
+    });
+
+    if (!uploadResponse.ok) {
+      throw new Error('Failed to upload files');
     }
 
-    if (formData.files.length === 0) {
-      setError('Please select at least one file or folder to upload');
-      return;
-    }
+    const uploadResult = await uploadResponse.json();
+    setCid(uploadResult.ipfsHash);
 
-    if (!formData.name) {
-      setError('Please enter a dataset name');
-      return;
-    }
+    // Register the dataset with the contract
+    await registerDataset(
+      uploadResult.ipfsHash,
+      formData.name,
+      formData.description,
+      formData.price,
+      formData.isPublic
+    );
 
-    setLoading(true);
-    setError('');
+
+    // Reset form and show success message
+    setFormData({
+      files: [],
+      price: '',
+      isPublic: false,
+      description: '',
+      name: ''
+    });
+    setCid('');
+    alert('Dataset uploaded and registered successfully!');
+  } catch (error) {
+    console.error('Error uploading dataset:', error);
+    setError(error.message);
+  } finally {
+    setLoading(false);
     setUploadProgress(0);
+  }
+};
 
-    try {
-      // Create FormData object
-      const formDataObj = new FormData();
-      formData.files.forEach(file => {
-        formDataObj.append('file', file);
-      });
-
-      // Upload files to backend
-      const uploadResponse = await fetch('http://localhost:5000/api/upload', {
-        method: 'POST',
-        body: formDataObj
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to upload files');
-      }
-
-      const uploadResult = await uploadResponse.json();
-      setCid(uploadResult.ipfsHash);
-
-      // Register the dataset with the contract
-      await registerDataset(
-        uploadResult.ipfsHash,
-        formData.price,
-        formData.isPublic
-      );
-
-      // Reset form and show success message
-      setFormData({
-        files: [],
-        price: '',
-        isPublic: false,
-        description: '',
-        name: ''
-      });
-      setCid('');
-      alert('Dataset uploaded and registered successfully!');
-    } catch (error) {
-      console.error('Error uploading dataset:', error);
-      setError(error.message);
-    } finally {
-      setLoading(false);
-      setUploadProgress(0);
-    }
-  };
 
   return (
     <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">

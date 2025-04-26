@@ -1,30 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { useHedera } from '../context/HederaContext';
-import DatasetRegistry from '../contracts/DatasetRegistry.json';
+import { ethers } from 'ethers'; // Added this import
 
 function DatasetMarketplace() {
-  const { account, client } = useHedera();
+  const { account, contract } = useHedera();
   const [datasets, setDatasets] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
-
   useEffect(() => {
     async function loadDatasets() {
-      if (!client || !account) return;
+      if (!contract || !account) return;
 
       try {
-        const count = await client.getDatasetCount();
+        const count = await contract.getDatasetCount();
         const datasetList = [];
 
         for (let i = 0; i < count; i++) {
-          const cid = await client.getDatasetCid(i);
-          const info = await client.getDatasetInfo(cid);
-          const hasLicense = await client.hasLicense(cid, account.toString());
+          const cid = await contract.getDatasetCid(i);
+          const info = await contract.getDatasetInfo(cid);
+          const hasLicense = await contract.hasLicense(cid, account.toString());
 
           datasetList.push({
             cid,
-            ...info,
+            owner: info.owner,
+            price: info.price,
+            isPublic: info.isPublic,
+            name: info.name,
+            description: info.description,
             hasLicense
           });
         }
@@ -38,14 +40,14 @@ function DatasetMarketplace() {
     }
 
     loadDatasets();
-  }, [client, account]);
+  }, [contract, account]);
 
   const purchaseDataset = async (cid, price) => {
-    if (!client || !account) return;
+    if (!contract || !account) return;
 
     try {
-      await client.grantLicense(cid, account.toString(), {
-        value: price
+      await contract.grantLicense(cid, account.toString(), {
+        value: price // price is already a BigNumber
       });
       // Refresh dataset list
       window.location.reload();
@@ -63,21 +65,35 @@ function DatasetMarketplace() {
   }
 
   return (
-    <div className="bg-white">
+    <div className="bg-white min-h-screen">
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <h2 className="text-3xl font-extrabold text-gray-900">Dataset Marketplace</h2>
-        <div className="mt-6 grid gap-6 lg:grid-cols-3">
+        <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {datasets.map((dataset) => (
-            <div key={dataset.cid} className="bg-white overflow-hidden shadow rounded-lg">
+            <div key={dataset.cid} className="bg-white overflow-hidden shadow rounded-lg border border-gray-200">
               <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg font-medium text-gray-900">{dataset.cid}</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Price: {dataset.price} HBAR
+                <h3 className="text-lg font-medium text-gray-900">
+                  {dataset.name ? dataset.name : 'Unnamed Dataset'}
+                </h3>
+                <p className="mt-1 text-sm text-gray-500 truncate">
+                  CID: {dataset.cid}
                 </p>
-                <p className="mt-1 text-sm text-gray-500">
-                  Owner: {dataset.owner.toString().slice(0, 6)}...{dataset.owner.toString().slice(-4)}
+                <p className="mt-2 text-sm text-gray-500">
+                  {dataset.description ? dataset.description : 'No description provided'}
                 </p>
-                <div className="mt-4">
+                <div className="mt-4 space-y-1">
+                  <p className="text-sm text-gray-600">
+                    Price: {dataset.price ? ethers.utils.formatUnits(dataset.price, 8) : 'N/A'} HBAR
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Owner: {dataset.owner ? `${dataset.owner.toString().slice(0, 6)}...${dataset.owner.toString().slice(-4)}` : 'Unknown'}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Visibility: {dataset.isPublic ? 'Public' : 'Private'}
+                  </p>
+                </div>
+
+                <div className="mt-6">
                   {dataset.hasLicense ? (
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                       Licensed
@@ -85,7 +101,7 @@ function DatasetMarketplace() {
                   ) : (
                     <button
                       onClick={() => purchaseDataset(dataset.cid, dataset.price)}
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700"
+                      className="mt-2 w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700"
                     >
                       Purchase License
                     </button>
@@ -100,4 +116,4 @@ function DatasetMarketplace() {
   );
 }
 
-export default DatasetMarketplace; 
+export default DatasetMarketplace;

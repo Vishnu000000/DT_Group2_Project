@@ -166,30 +166,31 @@ export function HederaProvider({ children }) {
 
   // ─── Contract Interactions ─────────────────────────────────────────────────
 
-  const registerDataset = async (cid, price, isPublic) => {
-    if (!contract) throw new Error('Contract not initialized');
+  async function registerDataset(ipfsHash, name, description, price, isPublic) {
+  if (!contract || !account) {
+    throw new Error('Wallet not connected');
+  }
+
+  // Assuming your smart contract has a method like registerDataset(string ipfsHash, string name, string description, uint256 price, bool isPublic)
+  const tx = await contract.registerDataset(
+    ipfsHash,
+    name,
+    description,
+    ethers.utils.parseUnits(price.toString(), 18),
+    isPublic
+  );
   
-    // Convert the price to the smallest unit (assuming the price is in HBAR, but adjust if needed)
-    const priceTiny = ethers.utils.parseUnits(price.toString(), 8); // 8 decimals for HBAR
-  
-    try {
-      // Call the contract's registerDataset function
-      const tx = await contract.registerDataset(cid, priceTiny, isPublic);
-      await tx.wait(); // Wait for the transaction to be mined
-      console.log('Dataset registered successfully!');
-    } catch (err) {
-      console.error('Error registering dataset:', err);
-      throw new Error('Failed to register dataset');
-    }
-  };
+  await tx.wait();
+}
+
 
   
-  // const getDatasetCount = async () => {
-  //   if (!contract) throw new Error('Contract not initialized');
-  //   const count = await contract.getDatasetCount();
-  //   await count.wait();
-  //   return count.toNumber() || parseInt(count);
-  // };
+  const getDatasetCount = async () => {
+    if (!contract) throw new Error('Contract not initialized');
+    const count = await contract.getDatasetCount();
+    await count.wait();
+    return count.toNumber() || parseInt(count);
+  };
 
   const getDatasetCid = async (index) => {
     if (!contract) {
@@ -206,25 +207,27 @@ export function HederaProvider({ children }) {
     }
   };
 
-  // const getDatasetInfo = async (cid) => {
-  //   if (!contract) throw new Error('Contract not initialized');
+  const getDatasetInfo = async (cid) => {
+    if (!contract) throw new Error('Contract not initialized');
   
-  //   try {
-  //     const info = await contract.getDatasetInfo(cid);
-  //     await info.wait();
-  //     return {
-  //       cid,
-  //       owner: info.owner,
-  //       priceHBAR: ethers.utils.formatUnits(info.price, 8),
-  //       isPublic: info.isPublic,
-  //       uploadTimestamp: Number(info.uploadTimestamp),
-  //       isRemoved: info.isRemoved,
-  //     };
-  //   } catch (err) {
-  //     console.error('Failed to fetch dataset info:', err);
-  //     throw err;
-  //   }
-  // };
+    try {
+      const info = await contract.getDatasetInfo(cid);
+      await info.wait();
+      return {
+        cid,
+        owner: info.owner,
+        priceHBAR: ethers.utils.formatUnits(info.price, 8),
+        isPublic: info.isPublic,
+        uploadTimestamp: Number(info.uploadTimestamp),
+        isRemoved: info.isRemoved,
+        name: info.name,
+        description: info.description,
+      };
+    } catch (err) {
+      console.error('Failed to fetch dataset info:', err);
+      throw err;
+    }
+  };
 
   
   const downloadDataset = async (cid, priceHBAR) => {

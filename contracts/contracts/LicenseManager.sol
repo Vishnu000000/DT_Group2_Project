@@ -30,6 +30,8 @@ contract LicenseManager is AccessControl, Pausable {
         bytes32 indexed licenseId,
         address indexed licensee,
         string datasetCid,
+        string name,
+        string description,
         uint256 expirationTimestamp
     );
     event LicenseRevoked(bytes32 indexed licenseId);
@@ -64,11 +66,13 @@ contract LicenseManager is AccessControl, Pausable {
         // Get dataset info first
         (
             address owner,
-            ,
+            string memory cid,
+            string memory name,
+            string memory description,
             uint256 price,
             bool isPublic,
             bool isRemoved,
-            
+            uint256 uploadTimestamp
         ) = registry.getDatasetInfo(datasetCid);
         
         require(!isPublic, "Dataset is public, no license needed");
@@ -107,7 +111,7 @@ contract LicenseManager is AccessControl, Pausable {
 
         userLicenses[msg.sender].push(licenseId);
         userDatasetLicenses[msg.sender][datasetCid] = licenseId;
-        emit LicenseGranted(licenseId, msg.sender, datasetCid, expirationTimestamp);
+        emit LicenseGranted(licenseId, msg.sender, datasetCid, name, description, expirationTimestamp);
     }
 
     function revokeLicense(string memory datasetCid, address licensee) external onlyRole(COMPLIANCE_ROLE) whenNotPaused {
@@ -135,4 +139,4 @@ contract LicenseManager is AccessControl, Pausable {
     function unpause() external onlyRole(DEFAULT_ADMIN_ROLE) {
         _unpause();
     }
-} 
+}

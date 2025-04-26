@@ -37,6 +37,8 @@ describe("LicenseManager", function () {
     // Register a private dataset
     await registry.registerDataset(
       "QmTestCID",
+      "Test Dataset",
+      "This is a test dataset",
       ethers.utils.parseEther("1.0"),
       false // private
     );
@@ -69,7 +71,7 @@ describe("LicenseManager", function () {
       
       await expect(tx)
         .to.emit(licenseManager, "LicenseGranted")
-        .withArgs(licenseId, addr1.address, cid, block.timestamp + 365 * 24 * 60 * 60);
+        .withArgs(licenseId, addr1.address, cid, "Test Dataset", "This is a test dataset", block.timestamp + 365 * 24 * 60 * 60);
       
       const license = await licenseManager.licenses(licenseId);
       expect(license.isActive).to.be.true;
@@ -80,6 +82,8 @@ describe("LicenseManager", function () {
       // Register a public dataset
       await registry.registerDataset(
         "QmPublicCID",
+        "Public Dataset",
+        "This is a public dataset",
         ethers.utils.parseEther("1.0"),
         true // public
       );
@@ -178,4 +182,4 @@ describe("LicenseManager", function () {
         .to.be.revertedWith("Fee cannot exceed 10%");
     });
   });
-}); 
+});

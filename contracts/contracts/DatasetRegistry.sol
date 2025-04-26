@@ -11,6 +11,8 @@ contract DatasetRegistry is AccessControl, Pausable {
     struct Dataset {
         address owner;
         string cid;
+        string name;
+        string description;
         uint256 price;
         bool isPublic;
         bool isRemoved;
@@ -21,7 +23,7 @@ contract DatasetRegistry is AccessControl, Pausable {
     mapping(string => Dataset) public datasets;
     string[] public datasetCids;
 
-    event DatasetRegistered(string indexed cid, address indexed owner, uint256 price);
+    event DatasetRegistered(string indexed cid, address indexed owner, uint256 price, string name, string description);
     event DatasetRemoved(string indexed cid);
     event LicenseGranted(string indexed cid, address indexed licensee);
 
@@ -33,27 +35,32 @@ contract DatasetRegistry is AccessControl, Pausable {
 
     function registerDataset(
         string memory _cid,
+        string memory _name,
+        string memory _description,
         uint256 _price,
         bool _isPublic
     ) external whenNotPaused {
         require(bytes(_cid).length > 0, "CID cannot be empty");
+        require(bytes(_name).length > 0, "Name cannot be empty");
         require(_price > 0, "Price must be greater than 0");
         require(datasets[_cid].owner == address(0), "Dataset already registered");
 
         Dataset storage dataset = datasets[_cid];
         dataset.owner = msg.sender;
         dataset.cid = _cid;
+        dataset.name = _name;
+        dataset.description = _description;
         dataset.price = _price;
         dataset.isPublic = _isPublic;
         dataset.uploadTimestamp = block.timestamp;
         dataset.isRemoved = false;
 
         datasetCids.push(_cid);
-        emit DatasetRegistered(_cid, msg.sender, _price);
+        emit DatasetRegistered(_cid, msg.sender, _price, _name, _description);
     }
 
     function removeDataset(string memory _cid) external {
-        require(datasets[_cid].owner == msg.sender || hasRole(COMPLIANCE_ROLE, msg.sender), 
+        require(datasets[_cid].owner == msg.sender || hasRole(COMPLIANCE_ROLE, msg.sender),
             "Not authorized to remove dataset");
         datasets[_cid].isRemoved = true;
         emit DatasetRemoved(_cid);
@@ -83,6 +90,8 @@ contract DatasetRegistry is AccessControl, Pausable {
     function getDatasetInfo(string memory _cid) external view returns (
         address owner,
         string memory cid,
+        string memory name,
+        string memory description,
         uint256 price,
         bool isPublic,
         bool isRemoved,
@@ -93,6 +102,8 @@ contract DatasetRegistry is AccessControl, Pausable {
         return (
             dataset.owner,
             dataset.cid,
+            dataset.name,
+            dataset.description,
             dataset.price,
             dataset.isPublic,
             dataset.isRemoved,
@@ -107,4 +118,4 @@ contract DatasetRegistry is AccessControl, Pausable {
     function unpause() external onlyRole(ADMIN_ROLE) {
         _unpause();
     }
-} 
+}

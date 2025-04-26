@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useHedera } from '../context/HederaContext';
-import { ethers } from 'ethers'; // Make sure to import ethers if needed
+import { ethers } from 'ethers';
+import axios from 'axios'; // Added axios to fetch from IPFS
 
 function ViewDatasets() {
   const { account, contract } = useHedera();
@@ -10,32 +11,32 @@ function ViewDatasets() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all'); // 'all', 'public', 'private'
 
-  // Function to fetch datasets using the contract's methods
+  const IPFS_GATEWAY = 'https://ipfs.io/ipfs/'; // You can change to another IPFS gateway if you want
+
   const getAvailableDatasets = async () => {
     if (!contract) throw new Error('Contract not initialized');
-  
-    try {
-      // const count = await contract.getDatasetCount();
-      const num = 1;
 
+    try {
+      const count = parseInt(await contract.getDatasetCount());
       const datasets = [];
-      // const indexAsUint256 = ethers.BigNumber.from(0);
-      const cid = await contract.getDatasetCid(1);
-      for (let i = 0; i < num; i++) {
-        // const cid = await contract.getDatasetCid(i); // Get CID by index
-        // const data = await contract.getDatasetInfo(cid); // Lookup dataset details by CID
-  
-        // if (data.isRemoved) continue;
-  
-        // datasets.push({
-        //   id: cid,
-        //   owner: data.owner,
-        //   price: ethers.utils.formatUnits(data.price, 8),
-        //   isPublic: data.isPublic,
-        //   uploaded: new Date(data.uploadTimestamp.toNumber() * 1000),
-        // });
+      
+      for (let i = 0; i < count; i++) {
+        const cid = await contract.getDatasetCid(i);
+        const data = await contract.getDatasetInfo(cid);
+
+        if (data.isRemoved) continue;
+
+        datasets.push({
+          id: cid,
+          owner: data.owner,
+          price: ethers.utils.formatUnits(data.price, 8),
+          isPublic: data.isPublic,
+          uploaded: new Date(data.uploadTimestamp.toNumber() * 1000),
+          name: data.name,
+          description: data.description
+        });
       }
-  
+
       return datasets;
     } catch (err) {
       console.error('Error in getAvailableDatasets:', err);
@@ -43,7 +44,6 @@ function ViewDatasets() {
     }
   };
 
-  // Fetch datasets when account or contract changes
   useEffect(() => {
     fetchDatasets();
   }, [account, contract]);
@@ -55,7 +55,7 @@ function ViewDatasets() {
     setError('');
 
     try {
-      const fetchedDatasets = await getAvailableDatasets(); // Call the custom function
+      const fetchedDatasets = await getAvailableDatasets();
       setDatasets(fetchedDatasets);
     } catch (error) {
       console.error('Error fetching datasets:', error);
@@ -73,41 +73,62 @@ function ViewDatasets() {
     setFilter(e.target.value);
   };
 
-  const handleDownload = async (dataset) => {
-    if (!contract || !account) {
-      setError('Please connect your wallet first');
+const handleDownload = async (dataset) => {
+  if (!contract || !account) {
+    setError('Please connect your wallet first');
+    return;
+  }
+
+  try {
+    setLoading(true);
+    setError('');
+
+    // Check if the user has a license to download the dataset
+    const hasLicense = await contract.hasLicense(dataset.id, account);
+
+    if (!hasLicense && !dataset.isPublic) {
+      setError('You need a license to download this private dataset');
       return;
     }
 
-    try {
-      setLoading(true);
-      // Check if user has license
-      const hasLicense = await contract.hasLicense(dataset.id, account);
-      
-      if (!hasLicense) {
-        // If no license, check if dataset is public
-        if (!dataset.isPublic) {
-          setError('You need a license to download this dataset');
-          return;
-        }
-      }
+    console.log('Downloading from IPFS:', dataset.id);
 
-      // Implement download logic here
-      // This would involve getting the dataset content from IPFS or your storage solution
-      console.log('Downloading dataset:', dataset.id);
-      
-    } catch (error) {
-      console.error('Error downloading dataset:', error);
-      setError('Failed to download dataset');
-    } finally {
-      setLoading(false);
-    }
-  };
+    // Use the Pinata gateway URL from environment variables
+    const pinataGateway = process.env.REACT_APP_PINATA_GATEWAY_URL;
+    
+    // Fetch file from IPFS via Pinata
+    const response = await axios.get(`${pinataGateway}${dataset.id}`, {
+      responseType: 'blob', // Important for file downloads
+    });
+
+    // Create a blob link to download the file
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+
+    // Name the downloaded file (fallback to cid if no name)
+    const fileName = dataset.name ? dataset.name.replace(/\s+/g, '_') : dataset.id;
+    link.setAttribute('download', `${fileName}.zip`); // Assuming zipped datasets
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode.removeChild(link);
+
+  } catch (error) {
+    console.error('Error downloading dataset:', error); 
+    setError('Failed to download dataset');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const filteredDatasets = datasets.filter(dataset => {
-    const matchesSearch = dataset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         dataset.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
+    const name = dataset.name || '';
+    const description = dataset.description || '';
+    const matchesSearch = 
+      name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      description.toLowerCase().includes(searchTerm.toLowerCase());
+
     if (filter === 'public') return matchesSearch && dataset.isPublic;
     if (filter === 'private') return matchesSearch && !dataset.isPublic;
     return matchesSearch;
@@ -163,8 +184,12 @@ function ViewDatasets() {
                 <div key={dataset.id} className="bg-white shadow rounded-lg p-6">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="text-lg font-medium text-gray-900">{dataset.name}</h3>
-                      <p className="mt-1 text-sm text-gray-500">{dataset.description}</p>
+                      <h3 className="text-lg font-medium text-gray-900">
+                        {dataset.name || 'null'}
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-500">
+                        {dataset.description || 'No description provided'}
+                      </p>
                       <div className="mt-2 flex items-center space-x-4">
                         <span className="text-sm text-gray-500">
                           Price: {dataset.price} HBAR
