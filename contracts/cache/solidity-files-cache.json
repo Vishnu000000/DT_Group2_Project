@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "D:\\IITM\\DT\\DT_Group2_Project\\contracts\\contracts\\DatasetRegistry.sol": {
-      "lastModificationDate": 1745692144770,
-      "contentHash": "4606f7076a10fc14572c97f7e970e15d",
+      "lastModificationDate": 1745749323438,
+      "contentHash": "62848c098475f1f5f0417d94e7ba64af",
       "sourceName": "contracts/DatasetRegistry.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -377,8 +377,8 @@
       ]
     },
     "D:\\IITM\\DT\\DT_Group2_Project\\contracts\\contracts\\LicenseManager.sol": {
-      "lastModificationDate": 1745692144770,
-      "contentHash": "7cc523c80ed2b233a914a1a9bf5d3c5b",
+      "lastModificationDate": 1745758332613,
+      "contentHash": "d59f233eb936cc43846545cee7861bc4",
       "sourceName": "contracts/LicenseManager.sol",
       "solcConfig": {
         "version": "0.8.19",

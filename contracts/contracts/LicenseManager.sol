@@ -13,6 +13,10 @@ contract LicenseManager is AccessControl, Pausable {
     DatasetToken public token;
     DatasetRegistry public registry;
     uint256 public platformFee; // in basis points (1% = 100)
+    uint256 public constant GAS_LIMIT = 500000; // Increased gas limit
+    uint256 public constant EXCHANGE_RATE = 1000; // 1 HBAR = 1000 DTT
+    uint256 public constant HBAR_DECIMALS = 18;
+    uint256 public constant TOKEN_DECIMALS = 8;
 
     struct License {
         address licensee;
@@ -37,6 +41,8 @@ contract LicenseManager is AccessControl, Pausable {
     event LicenseRevoked(bytes32 indexed licenseId);
     event LicenseRenewed(bytes32 indexed licenseId, uint256 newExpirationTimestamp);
     event PlatformFeeUpdated(uint256 newFee);
+    event TokenApprovalChecked(address indexed user, uint256 amount);
+    event TokensPurchased(address indexed buyer, uint256 hbarAmount, uint256 tokenAmount);
 
     constructor(
         address _token,
@@ -60,6 +66,17 @@ contract LicenseManager is AccessControl, Pausable {
         require(_platformFee <= 1000, "Fee cannot exceed 10%");
         platformFee = _platformFee;
         emit PlatformFeeUpdated(_platformFee);
+    }
+
+    function checkAndApproveTokenAllowance(uint256 amount) external {
+        require(amount > 0, "Amount must be greater than 0");
+        uint256 currentAllowance = token.allowance(msg.sender, address(this));
+        
+        if (currentAllowance < amount) {
+            require(token.approve(address(this), amount), "Token approval failed");
+        }
+        
+        emit TokenApprovalChecked(msg.sender, amount);
     }
 
     function purchaseLicense(string memory datasetCid) external whenNotPaused {
@@ -86,12 +103,17 @@ contract LicenseManager is AccessControl, Pausable {
         uint256 feeAmount = (price * platformFee) / 10000;
         uint256 ownerAmount = price - feeAmount;
 
-        // Check token allowance
-        require(token.allowance(msg.sender, address(this)) >= price, "Insufficient token allowance");
+        // Check token allowance with gas limit consideration
+        uint256 currentAllowance = token.allowance(msg.sender, address(this));
+        require(currentAllowance >= price, "Insufficient token allowance. Please call checkAndApproveTokenAllowance first");
 
         // Transfer tokens
         require(token.transferFrom(msg.sender, address(this), price), "Token transfer failed");
+
+        // Transfer to owner
         require(token.transfer(owner, ownerAmount), "Owner payment failed");
+        
+        // Transfer fee if any
         if (feeAmount > 0) {
             require(token.transfer(address(this), feeAmount), "Fee transfer failed");
         }
@@ -138,5 +160,26 @@ contract LicenseManager is AccessControl, Pausable {
 
     function unpause() external onlyRole(DEFAULT_ADMIN_ROLE) {
         _unpause();
+    }
+
+    function buyTokens(uint256 tokenAmount) external payable whenNotPaused {
+        require(tokenAmount > 0, "Token amount must be greater than 0");
+        
+        // Calculate required HBAR amount
+        // Since 1 HBAR = 1000 DTT, we need to divide tokenAmount by 1000
+        // And adjust for decimals: HBAR has 18 decimals, DTT has 8 decimals
+        uint256 hbarAmount = (tokenAmount * 10**(HBAR_DECIMALS - TOKEN_DECIMALS)) / EXCHANGE_RATE;
+        require(msg.value >= hbarAmount, "Insufficient HBAR sent");
+        
+        // Mint tokens to buyer
+        token.mint(msg.sender, tokenAmount);
+        
+        // Refund excess HBAR if any
+        if (msg.value > hbarAmount) {
+            (bool success, ) = msg.sender.call{value: msg.value - hbarAmount}("");
+            require(success, "HBAR refund failed");
+        }
+        
+        emit TokensPurchased(msg.sender, hbarAmount, tokenAmount);
     }
 }

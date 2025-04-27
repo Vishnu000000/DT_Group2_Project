@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useHedera } from '../context/HederaContext';
+import { useToken } from '../context/TokenContext';
 
 function Navbar() {
-  const { account, isConnected, isWalletInstalled, connect, disconnect, error } = useHedera();
+  const { account, connect, disconnect, error } = useToken();
   const location = useLocation();
 
   const isActive = (path) => {
@@ -69,7 +69,7 @@ function Navbar() {
                 {error}
               </div>
             )}
-            {isConnected ? (
+            {account ? (
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-gray-500">
                   {account?.slice(0, 6)}...{account?.slice(-4)}
@@ -84,14 +84,9 @@ function Navbar() {
             ) : (
               <button
                 onClick={connect}
-                className={`${
-                  isWalletInstalled
-                    ? 'bg-primary-600 hover:bg-primary-700'
-                    : 'bg-gray-400 cursor-not-allowed'
-                } text-white px-4 py-2 rounded-md text-sm font-medium`}
-                disabled={!isWalletInstalled}
+                className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm font-medium"
               >
-                {isWalletInstalled ? 'Connect MetaMask' : 'Install MetaMask'}
+                Connect Wallet
               </button>
             )}
           </div>

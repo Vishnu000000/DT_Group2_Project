@@ -60,26 +60,24 @@ export function LicenseProvider({ children }) {
 
     const initClientAndContract = (net) => {
       try {
-        const hederaClient =
-          net === 'mainnet' ? Client.forMainnet() : Client.forTestnet();
+        const hederaClient = net === 'mainnet' ? Client.forMainnet() : Client.forTestnet();
         hederaClient.setOperator(operatorId, operatorKey);
         setClient(hederaClient);
 
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
-        setLicenseContract(new ethers.Contract(
-          LICENSE_CONTRACT_ADDRESS,
-          LicenseManager.abi,
-          signer
-        ));
+        setLicenseContract(
+          new ethers.Contract(LICENSE_CONTRACT_ADDRESS, LicenseManager.abi, signer)
+        );
       } catch (err) {
         console.error('initClientAndContract error:', err);
         setError(err.message || 'Failed to initialize LicenseManager');
       }
     };
 
-    window.ethereum.request({ method: 'eth_chainId' })
-      .then(chainId => {
+    window.ethereum
+      .request({ method: 'eth_chainId' })
+      .then((chainId) => {
         if (chainId === HEDERA_NETWORK.mainnet.chainId) {
           setNetwork('mainnet');
           initClientAndContract('mainnet');
@@ -92,16 +90,21 @@ export function LicenseProvider({ children }) {
       })
       .catch(console.error);
 
-    window.ethereum.request({ method: 'eth_accounts' })
-      .then(accts => { if (accts.length) setAccount(accts[0]); })
+    window.ethereum
+      .request({ method: 'eth_accounts' })
+      .then((accts) => {
+        if (accts.length) setAccount(accts[0]);
+      })
       .catch(console.error);
 
-    const onAccounts = accts => accts.length ? setAccount(accts[0]) : setAccount(null);
-    const onChain = chainId => {
+    const onAccounts = (accts) => (accts.length ? setAccount(accts[0]) : setAccount(null));
+    const onChain = (chainId) => {
       if (chainId === HEDERA_NETWORK.mainnet.chainId) {
-        setNetwork('mainnet'); initClientAndContract('mainnet');
+        setNetwork('mainnet');
+        initClientAndContract('mainnet');
       } else if (chainId === HEDERA_NETWORK.testnet.chainId) {
-        setNetwork('testnet'); initClientAndContract('testnet');
+        setNetwork('testnet');
+        initClientAndContract('testnet');
       } else {
         setError('Switch MetaMask to a Hedera network');
       }
@@ -155,32 +158,83 @@ export function LicenseProvider({ children }) {
     setError(null);
   };
 
-  // ─── Contract Interactions ─────────────────────────────────────────────────
+  // Contract Interactions
+  const checkAndApproveTokenAllowance = async (amount) => {
+    if (!licenseContract || !account) throw new Error('Wallet not connected');
+    const tx = await licenseContract.checkAndApproveTokenAllowance(amount);
+    return tx.wait();
+  };
+
   const purchaseLicense = async (datasetCid) => {
     if (!licenseContract || !account) throw new Error('Wallet not connected');
-    const tx = await licenseContract.purchaseLicense(datasetCid);
-    await tx.wait();
+    
+    // Get current gas price
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const feeData = await provider.getFeeData();
+    
+    const tx = await licenseContract.purchaseLicense(datasetCid, {
+      gasLimit: 500000,
+      maxFeePerGas: feeData.maxFeePerGas || ethers.utils.parseUnits('100', 'gwei'),
+      maxPriorityFeePerGas: feeData.maxPriorityFeePerGas || ethers.utils.parseUnits('2', 'gwei'),
+      type: 2 // EIP-1559 transaction type
+    });
+    return tx.wait();
   };
 
   const revokeLicense = async (datasetCid, licensee) => {
     if (!licenseContract) throw new Error('Contract not initialized');
     const tx = await licenseContract.revokeLicense(datasetCid, licensee);
-    await tx.wait();
+    return tx.wait();
   };
 
   const isValidLicense = async (licenseId) => {
     if (!licenseContract) throw new Error('Contract not initialized');
-    const isValid = await licenseContract.isValidLicense(licenseId);
-    return isValid;
+    return licenseContract.isValidLicense(licenseId);
   };
 
   const getUserLicenses = async (userAddress) => {
-    if ( !licenseContract) throw new Error('Contract not initialized');
-    const licenses = await licenseContract.getUserLicenses(userAddress);
-    return licenses;
+    if (!licenseContract) throw new Error('Contract not initialized');
+    return licenseContract.getUserLicenses(userAddress);
   };
 
-  // ─── Render & Provide ──────────────────────────────────────────────────────
+  const buyTokens = async (tokenAmount) => {
+    if (!licenseContract || !account) throw new Error('Wallet not connected');
+    
+    // Calculate HBAR amount: (tokenAmount * 10^(18-8)) / 1000
+    const hbarAmount = tokenAmount.mul(ethers.utils.parseUnits('1', 10)).div(1000);
+    
+    // Get current gas price
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const feeData = await provider.getFeeData();
+    
+    const tx = await licenseContract.buyTokens(tokenAmount, {
+      value: hbarAmount,
+      gasLimit: 500000,
+      maxFeePerGas: feeData.maxFeePerGas || ethers.utils.parseUnits('100', 'gwei'),
+      maxPriorityFeePerGas: feeData.maxPriorityFeePerGas || ethers.utils.parseUnits('2', 'gwei'),
+      type: 2 // EIP-1559 transaction type
+    });
+    return tx.wait();
+  };
+
+  const setPlatformFee = async (fee) => {
+    if (!licenseContract || !account) throw new Error('Wallet not connected');
+    const tx = await licenseContract.setPlatformFee(fee);
+    return tx.wait();
+  };
+
+  const pause = async () => {
+    if (!licenseContract || !account) throw new Error('Wallet not connected');
+    const tx = await licenseContract.pause();
+    return tx.wait();
+  };
+
+  const unpause = async () => {
+    if (!licenseContract || !account) throw new Error('Wallet not connected');
+    const tx = await licenseContract.unpause();
+    return tx.wait();
+  };
+
   if (error) {
     return (
       <div style={{ padding: 20, color: 'red' }}>
@@ -191,18 +245,25 @@ export function LicenseProvider({ children }) {
   }
 
   return (
-    <LicenseContext.Provider value={{
-      account,
-      network,
-      client,
-      licenseContract,
-      connect,
-      disconnect,
-      purchaseLicense,
-      revokeLicense,
-      isValidLicense,
-      getUserLicenses,
-    }}>
+    <LicenseContext.Provider
+      value={{
+        account,
+        network,
+        client,
+        licenseContract,
+        connect,
+        disconnect,
+        checkAndApproveTokenAllowance,
+        purchaseLicense,
+        revokeLicense,
+        isValidLicense,
+        getUserLicenses,
+        buyTokens,
+        setPlatformFee,
+        pause,
+        unpause,
+      }}
+    >
       {children}
     </LicenseContext.Provider>
   );
