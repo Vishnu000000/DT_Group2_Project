@@ -8,26 +8,29 @@ import Dashboard from './pages/Dashboard';
 import DatasetMarketplace from './pages/DatasetMarketplace';
 import UploadDataset from './pages/UploadDataset';
 import ViewDatasets from './pages/ViewDatasets';
+import { TokenProvider } from './context/TokenContext';
 
 function App() {
   return (
     <HederaProvider>
-      <LicenseProvider>
-        <Router>
-          <div className="min-h-screen bg-gray-50">
-            <Navbar />
-            <main className="container mx-auto px-4 py-8">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/marketplace" element={<DatasetMarketplace />} />
-                <Route path="/upload" element={<UploadDataset />} />
-                <Route path="/datasets" element={<ViewDatasets />} />
-              </Routes>
-            </main>
-          </div>
-        </Router>
-      </LicenseProvider>
+      <TokenProvider>
+        <LicenseProvider>
+          <Router>
+            <div className="min-h-screen bg-gray-50">
+              <Navbar />
+              <main className="container mx-auto px-4 py-8">
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/marketplace" element={<DatasetMarketplace />} />
+                  <Route path="/upload" element={<UploadDataset />} />
+                  <Route path="/datasets" element={<ViewDatasets />} />
+                </Routes>
+              </main>
+            </div>
+          </Router>
+        </LicenseProvider>
+      </TokenProvider>
     </HederaProvider>
   );
 }

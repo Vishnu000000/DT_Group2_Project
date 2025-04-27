@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ethers } from 'ethers';
 import { useHedera } from '../context/HederaContext';
 
 function UploadDataset() {
@@ -98,7 +99,7 @@ function UploadDataset() {
       uploadResult.ipfsHash,
       formData.name,
       formData.description,
-      formData.price,
+      ethers.utils.formatUnits(formData.price, 10),
       formData.isPublic
     );
 

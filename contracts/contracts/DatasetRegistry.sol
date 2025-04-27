@@ -82,6 +82,31 @@ contract DatasetRegistry is AccessControl, Pausable {
         return datasetCids.length;
     }
 
+    function getDatasetIdxOfNotRemoved() external view returns (uint256[] memory) {
+        uint256 count = 0;
+        
+        for (uint256 i = 0; i < datasetCids.length; i++) {
+            if (!datasets[datasetCids[i]].isRemoved) {
+                count++;
+            }
+        }
+
+        
+        uint256[] memory indices = new uint256[](count);
+        uint256 j = 0;
+
+        
+        for (uint256 i = 0; i < datasetCids.length; i++) {
+            if (!datasets[datasetCids[i]].isRemoved) {
+                indices[j] = i;
+                j++;
+            }
+        }
+
+        return indices;
+    }
+
+
     function getDatasetCid(uint256 index) external view returns (string memory) {
         require(index < datasetCids.length, "Index out of bounds");
         return datasetCids[index];
