@@ -101,14 +101,42 @@ const handleDownload = async (dataset) => {
       responseType: 'blob', // Important for file downloads
     });
 
-    // Create a blob link to download the file
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const fileType = response.headers['content-type'] || 'application/octet-stream'; // Fallback if no type is specified
+
+    let fileExtension = '';
+    switch (fileType) {
+      case 'application/zip':
+        fileExtension = '.zip';
+        break;
+      case 'application/pdf':
+        fileExtension = '.pdf';
+        break;
+      case 'image/jpeg':
+        fileExtension = '.jpg';
+        break;
+      case 'image/png':
+        fileExtension = '.png';
+        break;
+      case 'text/plain':
+        fileExtension = '.txt';
+        break;
+      // Add more cases as needed for other file types
+      default:
+        fileExtension = ''; // Fallback for unknown file types
+        break;
+    }
+
+    // Create a Blob link to download the file
+    const blob = new Blob([response.data], { type: fileType });
+    const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
 
-    // Name the downloaded file (fallback to cid if no name)
+    // Set the file name with the correct extension (fallback to ID if no name)
     const fileName = dataset.name ? dataset.name.replace(/\s+/g, '_') : dataset.id;
-    link.setAttribute('download', `${fileName}.zip`); // Assuming zipped datasets
+    link.setAttribute('download', `${fileName}${fileExtension}`);
+
+    // Trigger the download
     document.body.appendChild(link);
     link.click();
     link.parentNode.removeChild(link);

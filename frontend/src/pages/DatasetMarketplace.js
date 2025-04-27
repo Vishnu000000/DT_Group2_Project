@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useHedera } from '../context/HederaContext';
 import { ethers } from 'ethers'; // Added this import
+import { useLicense } from '../context/LicenseContext';
 
 function DatasetMarketplace() {
   const { account, contract } = useHedera();
+  const { licenseContract} = useLicense();
   const [datasets, setDatasets] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -42,14 +44,12 @@ function DatasetMarketplace() {
     loadDatasets();
   }, [contract, account]);
 
-  const purchaseDataset = async (cid, price) => {
+  const purchaseDataset = async (cid) => {
     if (!contract || !account) return;
 
     try {
-      await contract.grantLicense(cid, account.toString(), {
-        value: price // price is already a BigNumber
-      });
-      // Refresh dataset list
+      const clid=await licenseContract.purchaseLicense(cid);  // NO value sent here
+      console.log(clid);
       window.location.reload();
     } catch (error) {
       console.error('Error purchasing dataset:', error);
