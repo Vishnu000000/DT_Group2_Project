@@ -377,8 +377,8 @@
       ]
     },
     "D:\\IITM\\DT\\DT_Group2_Project\\contracts\\contracts\\LicenseManager.sol": {
-      "lastModificationDate": 1745758332613,
-      "contentHash": "d59f233eb936cc43846545cee7861bc4",
+      "lastModificationDate": 1745774852288,
+      "contentHash": "134d9901d152dbc642c12dec3c16a188",
       "sourceName": "contracts/LicenseManager.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -418,7 +418,7 @@
       ]
     },
     "D:\\IITM\\DT\\DT_Group2_Project\\contracts\\contracts\\DatasetToken.sol": {
-      "lastModificationDate": 1745515761175,
+      "lastModificationDate": 1745769992065,
       "contentHash": "09734d06a8f04ce648b30ce65a7d1823",
       "sourceName": "contracts/DatasetToken.sol",
       "solcConfig": {

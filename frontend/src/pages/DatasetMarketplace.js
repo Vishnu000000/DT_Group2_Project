@@ -101,12 +101,20 @@ function DatasetMarketplace() {
         for (let i = 0; i < count; i++) {
           const cid = await contract.getDatasetCid(i);
           const info = await contract.getDatasetInfo(cid);
+          
+          // Skip if dataset is removed
+          if (info.isRemoved) {
+            continue;
+          }
+          
           const hasLicense = await contract.hasLicense(cid, account.toString());
 
+          // Store the raw BigNumber for price
           datasetList.push({
             cid,
             owner: info.owner,
-            price: info.price,
+            priceRaw: info.price, // Store raw BigNumber
+            priceFormatted: ethers.utils.formatUnits(info.price, 18), // Changed from 18 to 8 decimals for HBAR
             isPublic: info.isPublic,
             name: info.name,
             description: info.description,
@@ -126,48 +134,134 @@ function DatasetMarketplace() {
   }, [contract, account]);
 
   const purchaseDataset = async (dataset) => {
-    if (!contract || !account || !licenseContract || !tokenContract) {
+    if (!contract || !account || !licenseContract) {
       setError('Wallet not connected');
       return;
     }
-
+  
     if (isPurchasing) {
       setError('Purchase already in progress');
       return;
     }
-
+  
     setIsPurchasing(true);
     setError(null);
-
+  
     try {
-      setStatus('Checking token balance...');
-      const balance = await tokenContract.balanceOf(account);
-      const price = dataset.price;
-
-      if (balance.lt(price)) {
-        throw new Error(`Insufficient token balance. You need ${ethers.utils.formatUnits(price, 10)} DTT but only have ${ethers.utils.formatUnits(balance, 8)} DTT.`);
+      setStatus('Preparing purchase...');
+  
+      // First check if the dataset is available and get its price
+      const datasetInfo = await contract.getDatasetInfo(dataset.cid);
+      console.log('Dataset info:', datasetInfo);
+      
+      if (datasetInfo.isPublic) {
+        throw new Error('This dataset is public and does not require a license');
+      }
+      
+      if (datasetInfo.isRemoved) {
+        throw new Error('This dataset has been removed');
       }
 
-      setStatus('Checking token allowance...');
-      const adjustedPrice = ethers.utils.parseUnits(ethers.utils.formatUnits(dataset.price, 10), 18);
-      await checkAndApproveTokenAllowance(adjustedPrice);
+      // Get price in HBAR (8 decimals)
+      const priceInHBAR = dataset.priceRaw; // Use the raw BigNumber price
+      console.log('Price in HBAR (raw):', priceInHBAR.toString());
+      console.log('Price in HBAR (formatted):', ethers.utils.formatUnits(priceInHBAR, 8)); // Changed from 18 to 8 decimals
 
+      console.log('Price in HBAR:', priceInHBAR);
+
+      // Get the provider
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      
+      // Get the current gas price
+      const gasPrice = await provider.getGasPrice();
+      console.log('Current gas price:', ethers.utils.formatUnits(gasPrice, 'gwei'), 'gwei');
+
+      // Use a fixed gas limit that's known to work for this transaction
+      const gasLimit = ethers.BigNumber.from('500000');
+      
+      // Calculate gas cost in HBAR
+      const gasCost = gasLimit.mul(gasPrice);
+      console.log('Gas cost in HBAR:', ethers.utils.formatUnits(gasCost, 8));
+
+      // Add 20% buffer to the base price to account for gas and fees
+      const totalCost = priceInHBAR.mul(120).div(100);
+      
+      console.log('Cost breakdown:', {
+        basePrice: ethers.utils.formatUnits(priceInHBAR, 8),
+        gasCost: ethers.utils.formatUnits(gasCost, 8),
+        totalCost: ethers.utils.formatUnits(totalCost, 8)
+      });
+
+      // Check if user already has a license
+      const hasLicense = await contract.hasLicense(dataset.cid, account);
+      console.log('Has license:', hasLicense);
+      if (hasLicense) {
+        throw new Error('You already have a license for this dataset');
+      }
+
+      // Check if the dataset owner is valid
+      console.log('Dataset owner:', datasetInfo.owner);
+      if (datasetInfo.owner === ethers.constants.AddressZero) {
+        throw new Error('Invalid dataset owner');
+      }
+
+      // Check if the price is valid
+      if (priceInHBAR.isZero()) {
+        throw new Error('Invalid dataset price');
+      }
+
+      // Get user's HBAR balance
+      const balance = await provider.getBalance(account);
+      console.log('User balance:', ethers.utils.formatUnits(balance, 8), 'HBAR'); // Changed from 18 to 8 decimals
+
+      if (balance.lt(totalCost)) {
+        throw new Error(`Insufficient HBAR balance. Need ${ethers.utils.formatUnits(totalCost, 8)} HBAR but have ${ethers.utils.formatUnits(balance, 8)} HBAR`); // Changed from 18 to 8 decimals
+      }
+  
       setStatus('Purchasing license...');
-      const tx = await purchaseLicense(dataset.cid);
-      await tx.wait();
+
+      // Prepare transaction with fixed gas parameters
+      console.log('Price in HBAR Before calling purchaseLicense:', priceInHBAR);
+      const tx = await licenseContract.purchaseLicense(dataset.cid, {
+        value: priceInHBAR,
+        gasLimit: gasLimit,
+        gasPrice: gasPrice
+      });
+
+      console.log('Transaction sent:', tx.hash);
+  
+      const receipt = await tx.wait();
+      console.log('Transaction receipt:', receipt);
+  
       setStatus('License purchased successfully!');
       fetchDatasets();
     } catch (error) {
       console.error('Purchase error:', error);
-      if (error.message.includes('transfer amount exceeds balance')) {
-        setError('Insufficient token balance. Please ensure you have enough tokens to complete the purchase.');
+      if (error.message.includes('Insufficient HBAR')) {
+        setError(error.message);
+      } else if (error.message.includes('License already active')) {
+        setError('You already have an active license for this dataset.');
+      } else if (error.message.includes('Dataset is public')) {
+        setError('This dataset is public and does not require a license.');
+      } else if (error.message.includes('Dataset is removed')) {
+        setError('This dataset has been removed and is no longer available.');
+      } else if (error.message.includes('already have a license')) {
+        setError('You already have a license for this dataset.');
+      } else if (error.message.includes('Invalid dataset owner')) {
+        setError('This dataset has an invalid owner.');
+      } else if (error.message.includes('Invalid dataset price')) {
+        setError('This dataset has an invalid price.');
+      } else if (error.code === -32603) {
+        setError('Transaction rejected. Please check your HBAR balance and try again.');
       } else {
-        setError(error.message || 'Failed to purchase license');
+        setError('Failed to purchase license: ' + error.message);
       }
     } finally {
       setIsPurchasing(false);
     }
   };
+  
+  
 
   const checkAndApproveTokenAllowance = async (price) => {
     if (!licenseContract || !account) {
@@ -207,12 +301,20 @@ function DatasetMarketplace() {
       for (let i = 0; i < count; i++) {
         const cid = await contract.getDatasetCid(i);
         const info = await contract.getDatasetInfo(cid);
+        
+        // Skip if dataset is removed
+        if (info.isRemoved) {
+          continue;
+        }
+        
         const hasLicense = await contract.hasLicense(cid, account.toString());
 
+        // Store the raw BigNumber for price
         datasetList.push({
           cid,
           owner: info.owner,
-          price: info.price,
+          priceRaw: info.price, // Store raw BigNumber
+          priceFormatted: ethers.utils.formatUnits(info.price, 8), // Changed from 18 to 8 decimals for HBAR
           isPublic: info.isPublic,
           name: info.name,
           description: info.description,
@@ -360,7 +462,7 @@ function DatasetMarketplace() {
                 </p>
                 <div className="mt-4 space-y-1">
                   <div className="dataset-price">
-                    Price: {ethers.utils.formatUnits(dataset.price, 10)} DTT
+                    Price: {dataset.priceFormatted} HBAR
                   </div>
                   <p className="text-sm text-gray-600">
                     Owner: {dataset.owner ? `${dataset.owner.toString().slice(0, 6)}...${dataset.owner.toString().slice(-4)}` : 'Unknown'}
