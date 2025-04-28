@@ -34,7 +34,7 @@ export function HederaProvider({ children }) {
   // ─── Env‐vars ― no hooks here ─────────────────────────────────────────────
   const acctEnv   = process.env.REACT_APP_HEDERA_ACCOUNT_ID;
   let   keyEnv    = process.env.REACT_APP_HEDERA_PRIVATE_KEY || '';
-  const CONTRACT_ADDRESS = process.env.REACT_APP_CONTRACT_ADDRESS;
+  const CONTRACT_ADDRESS = process.env.REACT_APP_DATASET_CONTRACT_ADDRESS;
 
   if (keyEnv.startsWith('0x')) keyEnv = keyEnv.slice(2);
 
@@ -168,24 +168,22 @@ export function HederaProvider({ children }) {
   // ─── Contract Interactions ─────────────────────────────────────────────────
 
   async function registerDataset(ipfsHash, name, description, price, isPublic) {
-  if (!contract || !account) {
-    throw new Error('Wallet not connected');
+    if (!contract || !account) {
+      throw new Error('Wallet not connected');
+    }
+
+    // Register dataset with HBAR price (18 decimals)
+    const tx = await contract.registerDataset(
+      ipfsHash,
+      name,
+      description,
+      price, // Price is already in HBAR with 18 decimals
+      isPublic
+    );
+    
+    await tx.wait();
   }
 
-  // Assuming your smart contract has a method like registerDataset(string ipfsHash, string name, string description, uint256 price, bool isPublic)
-  const tx = await contract.registerDataset(
-    ipfsHash,
-    name,
-    description,
-    ethers.utils.parseUnits(price.toString(), 18),
-    isPublic
-  );
-  
-  await tx.wait();
-}
-
-
-  
   const getDatasetCount = async () => {
     if (!contract) throw new Error('Contract not initialized');
     const count = await contract.getDatasetCount();
@@ -217,7 +215,7 @@ export function HederaProvider({ children }) {
       return {
         cid,
         owner: info.owner,
-        priceHBAR: ethers.utils.formatUnits(info.price, 8),
+        price: ethers.utils.formatUnits(info.price, 18), // Changed from 8 to 18 decimals for HBAR
         isPublic: info.isPublic,
         uploadTimestamp: Number(info.uploadTimestamp),
         isRemoved: info.isRemoved,
@@ -230,11 +228,10 @@ export function HederaProvider({ children }) {
     }
   };
 
-  
-  const downloadDataset = async (cid, priceHBAR) => {
+  const downloadDataset = async (cid, price) => {
     if (!contract) throw new Error('Contract not initialized');
-    const priceTiny = ethers.utils.parseUnits(priceHBAR.toString(), 8);
-    const tx = await contract.downloadDataset(cid, { value: priceTiny });
+    const priceInHBAR = ethers.utils.parseUnits(price.toString(), 18); // Changed from 8 to 18 decimals
+    const tx = await contract.downloadDataset(cid, { value: priceInHBAR });
     return tx.wait();
   };
 

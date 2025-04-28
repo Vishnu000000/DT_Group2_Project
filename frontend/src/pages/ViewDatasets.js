@@ -29,7 +29,7 @@ function ViewDatasets() {
         datasets.push({
           id: cid,
           owner: data.owner,
-          price: ethers.utils.formatUnits(data.price, 8),
+          price: ethers.utils.formatUnits(data.price, 18),
           isPublic: data.isPublic,
           uploaded: new Date(data.uploadTimestamp.toNumber() * 1000),
           name: data.name,
@@ -149,6 +149,35 @@ const handleDownload = async (dataset) => {
   }
 };
 
+const handleDelete = async (dataset) => {
+  if (!contract || !account) {
+    setError('Please connect your wallet first');
+    return;
+  }
+
+  try {
+    setLoading(true);
+    setError('');
+
+    // Check if the user is the owner of the dataset
+    if (dataset.owner.toLowerCase() !== account.toLowerCase()) {
+      setError('Only the dataset owner can delete this dataset');
+      return;
+    }
+
+    // Call the contract's removeDataset function
+    const tx = await contract.removeDataset(dataset.id);
+    await tx.wait();
+
+    // Refresh the datasets list
+    await fetchDatasets();
+  } catch (error) {
+    console.error('Error deleting dataset:', error);
+    setError('Failed to delete dataset');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const filteredDatasets = datasets.filter(dataset => {
     const name = dataset.name || '';
@@ -227,13 +256,24 @@ const handleDownload = async (dataset) => {
                         </span>
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleDownload(dataset)}
-                      disabled={loading}
-                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                    >
-                      Download
-                    </button>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleDownload(dataset)}
+                        disabled={loading}
+                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                      >
+                        Download
+                      </button>
+                      {dataset.owner.toLowerCase() === account?.toLowerCase() && (
+                        <button
+                          onClick={() => handleDelete(dataset)}
+                          disabled={loading}
+                          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}

@@ -376,9 +376,15 @@
         "IERC165"
       ]
     },
+<<<<<<< HEAD
     "C:\\Users\\VARDHAN\\OneDrive\\Documents\\GitHub\\DT_Group2_Project\\contracts\\contracts\\LicenseManager.sol": {
       "lastModificationDate": 1745775469343,
       "contentHash": "1169c4c5b3762cd14a87e97d9036c700",
+=======
+    "D:\\IITM\\DT\\DT_Group2_Project\\contracts\\contracts\\LicenseManager.sol": {
+      "lastModificationDate": 1745774852288,
+      "contentHash": "134d9901d152dbc642c12dec3c16a188",
+>>>>>>> cf6eff77df33253fa2c7d3d6a32fabcb230c36ee
       "sourceName": "contracts/LicenseManager.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -417,8 +423,13 @@
         "LicenseManager"
       ]
     },
+<<<<<<< HEAD
     "C:\\Users\\VARDHAN\\OneDrive\\Documents\\GitHub\\DT_Group2_Project\\contracts\\contracts\\DatasetToken.sol": {
       "lastModificationDate": 1745510249664,
+=======
+    "D:\\IITM\\DT\\DT_Group2_Project\\contracts\\contracts\\DatasetToken.sol": {
+      "lastModificationDate": 1745769992065,
+>>>>>>> cf6eff77df33253fa2c7d3d6a32fabcb230c36ee
       "contentHash": "09734d06a8f04ce648b30ce65a7d1823",
       "sourceName": "contracts/DatasetToken.sol",
       "solcConfig": {

@@ -99,7 +99,7 @@ function UploadDataset() {
       uploadResult.ipfsHash,
       formData.name,
       formData.description,
-      ethers.utils.formatUnits(formData.price, 10),
+      ethers.utils.parseUnits(formData.price, 18),
       formData.isPublic
     );
 
@@ -249,7 +249,7 @@ function UploadDataset() {
               onChange={handleChange}
               required
               min="0"
-              step="0.0001"
+              step="0.000000001"
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
               placeholder="Enter price in HBAR"
             />

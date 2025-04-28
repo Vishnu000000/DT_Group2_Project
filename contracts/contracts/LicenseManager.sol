@@ -79,62 +79,68 @@ contract LicenseManager is AccessControl, Pausable {
         emit TokenApprovalChecked(msg.sender, amount);
     }
 
-    function purchaseLicense(string memory datasetCid) external whenNotPaused {
-        // Get dataset info first
-        (
-            address owner,
-            string memory cid,
-            string memory name,
-            string memory description,
-            uint256 price,
-            bool isPublic,
-            bool isRemoved,
-            uint256 uploadTimestamp
-        ) = registry.getDatasetInfo(datasetCid);
-        
-        require(!isPublic, "Dataset is public, no license needed");
-        require(!isRemoved, "Dataset is removed");
-        require(price > 0, "Dataset price must be greater than 0");
+    function purchaseLicense(string memory datasetCid) external payable whenNotPaused {
+    // Get dataset info first
+    (
+        address owner,
+        string memory cid,
+        string memory name,
+        string memory description,
+        uint256 price,
+        bool isPublic,
+        bool isRemoved,
+        uint256 uploadTimestamp
+    ) = registry.getDatasetInfo(datasetCid);
+    
+    require(!isPublic, "Dataset is public, no license needed");
+    require(!isRemoved, "Dataset is removed");
+    require(price > 0, "Dataset price must be greater than 0");
 
-        // Check if license already exists
-        bytes32 existingLicenseId = userDatasetLicenses[msg.sender][datasetCid];
-        require(existingLicenseId == bytes32(0) || !licenses[existingLicenseId].isActive, "License already active");
+    // Check if license already exists
+    bytes32 existingLicenseId = userDatasetLicenses[msg.sender][datasetCid];
+    require(existingLicenseId == bytes32(0) || !licenses[existingLicenseId].isActive, "License already active");
 
-        uint256 feeAmount = (price * platformFee) / 10000;
-        uint256 ownerAmount = price - feeAmount;
+    uint256 feeAmount = (price * platformFee) / 10000;
+    uint256 ownerAmount = price - feeAmount;
 
-        // Check token allowance with gas limit consideration
-        uint256 currentAllowance = token.allowance(msg.sender, address(this));
-        require(currentAllowance >= price, "Insufficient token allowance. Please call checkAndApproveTokenAllowance first");
+    // Check if user sent enough HBAR
+    require(msg.value >= price, "Insufficient HBAR sent");
 
-        // Transfer tokens
-        require(token.transferFrom(msg.sender, address(this), price), "Token transfer failed");
-
-        // Transfer to owner
-        require(token.transfer(owner, ownerAmount), "Owner payment failed");
-        
-        // Transfer fee if any
-        if (feeAmount > 0) {
-            require(token.transfer(address(this), feeAmount), "Fee transfer failed");
-        }
-
-        // Grant license
-        uint256 purchaseTimestamp = block.timestamp;
-        bytes32 licenseId = keccak256(abi.encodePacked(msg.sender, datasetCid, purchaseTimestamp));
-        uint256 expirationTimestamp = purchaseTimestamp + 365 days; // 1 year license
-
-        licenses[licenseId] = License({
-            licensee: msg.sender,
-            datasetCid: datasetCid,
-            purchaseTimestamp: purchaseTimestamp,
-            expirationTimestamp: expirationTimestamp,
-            isActive: true
-        });
-
-        userLicenses[msg.sender].push(licenseId);
-        userDatasetLicenses[msg.sender][datasetCid] = licenseId;
-        emit LicenseGranted(licenseId, msg.sender, datasetCid, name, description, expirationTimestamp);
+    // Refund extra HBAR if user sent too much
+    if (msg.value > price) {
+        (bool refundSent, ) = payable(msg.sender).call{value: msg.value - price}("");
+        require(refundSent, "Refund failed");
     }
+
+    // Send HBAR directly to dataset owner
+    (bool ownerSent, ) = payable(owner).call{value: ownerAmount}("");
+    require(ownerSent, "Payment to owner failed");
+
+    // Send platform fee to contract owner
+    if (feeAmount > 0) {
+        (bool feeSent, ) = payable(address(this)).call{value: feeAmount}("");
+        require(feeSent, "Fee transfer failed");
+    }
+
+    // Grant license
+    uint256 purchaseTimestamp = block.timestamp;
+    bytes32 licenseId = keccak256(abi.encodePacked(msg.sender, datasetCid, purchaseTimestamp));
+    uint256 expirationTimestamp = purchaseTimestamp + 365 days; // 1 year license
+
+    licenses[licenseId] = License({
+        licensee: msg.sender,
+        datasetCid: datasetCid,
+        purchaseTimestamp: purchaseTimestamp,
+        expirationTimestamp: expirationTimestamp,
+        isActive: true
+    });
+
+    userLicenses[msg.sender].push(licenseId);
+    userDatasetLicenses[msg.sender][datasetCid] = licenseId;
+    
+    emit LicenseGranted(licenseId, msg.sender, datasetCid, name, description, expirationTimestamp);
+}
+
 
     function revokeLicense(string memory datasetCid, address licensee) external onlyRole(COMPLIANCE_ROLE) whenNotPaused {
         bytes32 licenseId = userDatasetLicenses[licensee][datasetCid];
@@ -165,10 +171,7 @@ contract LicenseManager is AccessControl, Pausable {
     function buyTokens(uint256 tokenAmount) external payable whenNotPaused {
         require(tokenAmount > 0, "Token amount must be greater than 0");
         
-        // Calculate required HBAR amount
-        // Since 1 HBAR = 1000 DTT, we need to divide tokenAmount by 1000
-        // And adjust for decimals: HBAR has 18 decimals, DTT has 8 decimals
-        uint256 hbarAmount = (tokenAmount * 10**(HBAR_DECIMALS - TOKEN_DECIMALS)) / EXCHANGE_RATE;
+        uint256 hbarAmount = tokenAmount/EXCHANGE_RATE;
         require(msg.value >= hbarAmount, "Insufficient HBAR sent");
         
         // Mint tokens to buyer
