@@ -42,7 +42,7 @@ contract DatasetRegistry is AccessControl, Pausable {
     ) external whenNotPaused {
         require(bytes(_cid).length > 0, "CID cannot be empty");
         require(bytes(_name).length > 0, "Name cannot be empty");
-        require(_price > 0, "Price must be greater than 0");
+        require(_isPublic || _price > 0, "Dataset must be public or have a price greater than 0");
         require(datasets[_cid].owner == address(0), "Dataset already registered");
 
         Dataset storage dataset = datasets[_cid];
@@ -68,13 +68,15 @@ contract DatasetRegistry is AccessControl, Pausable {
 
     function grantLicense(string memory _cid, address _licensee) external {
         require(!datasets[_cid].isRemoved, "Dataset is removed");
-        require(datasets[_cid].owner == msg.sender, "Not the dataset owner");
         datasets[_cid].licensees[_licensee] = true;
         emit LicenseGranted(_cid, _licensee);
     }
 
     function hasLicense(string memory _cid, address _user) external view returns (bool) {
         require(datasets[_cid].owner != address(0), "Dataset does not exist");
+        if(_user==datasets[_cid].owner){
+            return true;
+        }
         return datasets[_cid].isPublic || datasets[_cid].licensees[_user];
     }
 

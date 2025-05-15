@@ -1,9 +1,9 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useToken } from '../context/TokenContext';
+import React from "react";
+import { useHedera } from "../context/HederaContext";
+import { Link, useLocation } from "react-router-dom";
 
 function Navbar() {
-  const { account, connect, disconnect, error } = useToken();
+  const { account, connect, disconnect, error } = useHedera();
   const location = useLocation();
 
   const isActive = (path) => {
@@ -24,9 +24,9 @@ function Navbar() {
               <Link
                 to="/"
                 className={`${
-                  isActive('/')
-                    ? 'border-primary-500 text-gray-900'
-                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                  isActive("/")
+                    ? "border-primary-500 text-gray-900"
+                    : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
                 } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
               >
                 Home
@@ -34,9 +34,9 @@ function Navbar() {
               <Link
                 to="/datasets"
                 className={`${
-                  isActive('/datasets')
-                    ? 'border-primary-500 text-gray-900'
-                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                  isActive("/datasets")
+                    ? "border-primary-500 text-gray-900"
+                    : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
                 } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
               >
                 Datasets
@@ -44,9 +44,9 @@ function Navbar() {
               <Link
                 to="/upload"
                 className={`${
-                  isActive('/upload')
-                    ? 'border-primary-500 text-gray-900'
-                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                  isActive("/upload")
+                    ? "border-primary-500 text-gray-900"
+                    : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
                 } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
               >
                 Upload Dataset
@@ -54,9 +54,9 @@ function Navbar() {
               <Link
                 to="/marketplace"
                 className={`${
-                  isActive('/marketplace')
-                    ? 'border-primary-500 text-gray-900'
-                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                  isActive("/marketplace")
+                    ? "border-primary-500 text-gray-900"
+                    : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
                 } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
               >
                 Marketplace
@@ -64,11 +64,7 @@ function Navbar() {
             </div>
           </div>
           <div className="flex items-center">
-            {error && (
-              <div className="mr-4 text-red-600 text-sm">
-                {error}
-              </div>
-            )}
+            {error && <div className="mr-4 text-red-600 text-sm">{error}</div>}
             {account ? (
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-gray-500">
@@ -96,4 +92,4 @@ function Navbar() {
   );
 }
 
-export default Navbar; 
+export default Navbar;
