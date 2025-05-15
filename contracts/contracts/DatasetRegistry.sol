@@ -74,7 +74,7 @@ contract DatasetRegistry is AccessControl, Pausable {
 
     function hasLicense(string memory _cid, address _user) external view returns (bool) {
         require(datasets[_cid].owner != address(0), "Dataset does not exist");
-        if(_user==dataset[_cid].owner){
+        if(_user==datasets[_cid].owner){
             return true;
         }
         return datasets[_cid].isPublic || datasets[_cid].licensees[_user];
