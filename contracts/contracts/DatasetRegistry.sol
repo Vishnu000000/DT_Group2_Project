@@ -68,13 +68,15 @@ contract DatasetRegistry is AccessControl, Pausable {
 
     function grantLicense(string memory _cid, address _licensee) external {
         require(!datasets[_cid].isRemoved, "Dataset is removed");
-        require(datasets[_cid].owner == msg.sender, "Not the dataset owner");
         datasets[_cid].licensees[_licensee] = true;
         emit LicenseGranted(_cid, _licensee);
     }
 
     function hasLicense(string memory _cid, address _user) external view returns (bool) {
         require(datasets[_cid].owner != address(0), "Dataset does not exist");
+        if(_user==dataset[_cid].owner){
+            return true;
+        }
         return datasets[_cid].isPublic || datasets[_cid].licensees[_user];
     }
 

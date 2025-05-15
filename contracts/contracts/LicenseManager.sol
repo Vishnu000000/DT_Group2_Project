@@ -100,27 +100,18 @@ contract LicenseManager is AccessControl, Pausable {
     bytes32 existingLicenseId = userDatasetLicenses[msg.sender][datasetCid];
     require(existingLicenseId == bytes32(0) || !licenses[existingLicenseId].isActive, "License already active");
 
-    uint256 feeAmount = (price * platformFee) / 10000;
-    uint256 ownerAmount = price - feeAmount;
+    uint256 ownerAmount = msg.value;
 
     // Check if user sent enough HBAR
-    require(msg.value >= price, "Insufficient HBAR sent");
+    require(msg.value >= 0, "Insufficient HBAR sent");
 
-    // Refund extra HBAR if user sent too much
-    if (msg.value > price) {
-        (bool refundSent, ) = payable(msg.sender).call{value: msg.value - price}("");
-        require(refundSent, "Refund failed");
-    }
 
     // Send HBAR directly to dataset owner
     (bool ownerSent, ) = payable(owner).call{value: ownerAmount}("");
     require(ownerSent, "Payment to owner failed");
 
-    // Send platform fee to contract owner
-    if (feeAmount > 0) {
-        (bool feeSent, ) = payable(address(this)).call{value: feeAmount}("");
-        require(feeSent, "Fee transfer failed");
-    }
+    // Grant license in DatasetRegistry
+    registry.grantLicense(datasetCid, msg.sender);
 
     // Grant license
     uint256 purchaseTimestamp = block.timestamp;
