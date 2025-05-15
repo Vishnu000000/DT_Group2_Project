@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { ethers } from "ethers";
 import { useHedera } from "../context/HederaContext";
+import CryptoJS from "crypto-js";
 
 function UploadDataset() {
   const { account, contract, registerDataset } = useHedera();
@@ -129,14 +130,20 @@ function UploadDataset() {
       }
 
       const uploadResult = await uploadResponse.json();
-      setCid(uploadResult.ipfsHash);
+      const secretKey = process.env.REACT_APP_SECRET_KEY; // reads your secret key from env
+      const uploadResultString = JSON.stringify(uploadResult.ipfsHash);
+      const encryptedipfshash = CryptoJS.AES.encrypt(
+        uploadResultString,
+        secretKey
+      ).toString();
+      setCid(encryptedipfshash);
 
       // Set the price based on whether the dataset is public or private
       const finalPrice = formData.isPublic ? "0" : formData.price;
 
       // Register the dataset with the contract
       await registerDataset(
-        uploadResult.ipfsHash,
+        encryptedipfshash,
         formData.name,
         formData.description,
         ethers.utils.parseUnits(finalPrice, 18),
