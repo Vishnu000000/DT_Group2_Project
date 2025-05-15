@@ -42,7 +42,7 @@ contract DatasetRegistry is AccessControl, Pausable {
     ) external whenNotPaused {
         require(bytes(_cid).length > 0, "CID cannot be empty");
         require(bytes(_name).length > 0, "Name cannot be empty");
-        require(_price > 0, "Price must be greater than 0");
+        require(_isPublic || _price > 0, "Dataset must be public or have a price greater than 0");
         require(datasets[_cid].owner == address(0), "Dataset already registered");
 
         Dataset storage dataset = datasets[_cid];
