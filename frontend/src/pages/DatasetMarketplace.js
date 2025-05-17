@@ -279,11 +279,9 @@ function DatasetMarketplace() {
                 <h3 className="text-lg font-medium text-gray-900">
                   {dataset.name ? dataset.name : "Unnamed Dataset"}
                 </h3>
-                <p className="mt-1 text-sm text-gray-500 truncate">
-                  CID: {dataset.cid}
-                </p>
+                
                 <p className="mt-2 text-sm text-gray-500">
-                  {dataset.description
+                Description:{dataset.description
                     ? dataset.description
                     : "No description provided"}
                 </p>

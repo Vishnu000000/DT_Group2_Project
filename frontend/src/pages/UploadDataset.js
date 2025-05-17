@@ -248,22 +248,7 @@ function UploadDataset() {
                       onChange={handleFileChange}
                     />
                   </label>
-                  <p className="pl-1">or</p>
-                  <label
-                    htmlFor="folder-upload"
-                    className="ml-2 relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500"
-                  >
-                    <span>Upload folder</span>
-                    <input
-                      id="folder-upload"
-                      name="folder"
-                      type="file"
-                      webkitdirectory="true"
-                      directory="true"
-                      className="sr-only"
-                      onChange={handleFolderChange}
-                    />
-                  </label>
+                  
                 </div>
                 <p className="text-xs text-gray-500">
                   CSV, JSON, TXT, or any data files up to 100MB total
