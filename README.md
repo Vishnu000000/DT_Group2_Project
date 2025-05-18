@@ -106,6 +106,7 @@ npm run dev
 
 - Once the contract is deployed update the address of the contract in
    the Frontend .env variable.(REACT_APP_TOKEN_CONTRACT_ADDRESS, REACT_APP_LICENSE_CONTRACT_ADDRESS,REACT_APP_DATASET_CONTRACT_ADDRESS)
+- In contracts directory there will be arifacts genearted once contracts are compiled, in that artifacts directory there is contracts directory yu can find .json in which abis are present also, place all of them in contracts directory inside frontend.
 ```
 cd frontend
 npm init
