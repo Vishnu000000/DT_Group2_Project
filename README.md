@@ -83,7 +83,7 @@ node -v
 npm -v
 ```
 
-4. Compiling and Deploying the Smart Contract
+4. Compiling and Deploying the Smart Contract (compile only once)
 
 - Before depolying update the .env file with the Hedera Testnet account information.(PRIVATE_KEY,HEDERA_OPERATOR_ID,HEDERA_OPERATOR_KEY)
 ```
