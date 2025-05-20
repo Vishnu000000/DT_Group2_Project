@@ -13,7 +13,7 @@ The project leverages blockchain technology to create a trustless environment wh
 
 📦 Required Libraries and Packages
 
-Smart Contract Development:
+### Smart Contract Development:
 - hardhat: Development environment for Ethereum
 - @openzeppelin/contracts: Secure smart contract libraries
 - @nomiclabs/hardhat-ethers: Hardhat plugin for ethers.js
@@ -21,7 +21,7 @@ Smart Contract Development:
 - chai: Testing framework
 - ethereum-waffle: Testing framework for smart contracts
 
-Backend Development:
+### Backend Development:
 - express: Web framework for Node.js
 - ipfs-http-client: IPFS client library
 - multer: File upload handling
@@ -30,7 +30,7 @@ Backend Development:
 - ethers: Ethereum library for interacting with smart contracts
 - web3: Ethereum JavaScript API
 
-Frontend Development:
+### Frontend Development:
 - react: UI library
 - ethers: Ethereum library for frontend
 - bootstrap: CSS framework
@@ -41,7 +41,7 @@ Frontend Development:
 - @emotion/react: CSS-in-JS library
 - @emotion/styled: Styled components
 
-Development Tools:
+### Development Tools:
 - typescript: Type checking
 - eslint: Code linting
 - prettier: Code formatting
