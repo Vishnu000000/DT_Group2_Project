@@ -1,6 +1,6 @@
 # Distributed Trust – AI Model Training Data (Group 2)
 
-Description:
+## Description:
 This project aims to create a decentralized platform for managing and sharing AI model training data using blockchain technology. The platform will ensure data integrity, transparency, and fair compensation for data contributors while maintaining privacy and security.
 
 Key Features:
